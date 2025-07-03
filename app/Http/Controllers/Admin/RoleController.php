@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enum\Permission;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\AdminController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
@@ -13,17 +13,25 @@ use Inertia\Response;
 use Spatie\Permission\Models\Permission as PermissionModel;
 use Spatie\Permission\Models\Role;
 
-class RoleController extends Controller
+class RoleController extends AdminController
 {
+    /**
+     * Constructor to authorize admin access
+     */
+    public function __construct()
+    {
+        $this->authorize(Permission::ADMIN_ROLE->value);
+    }
+
     /**
      * Display a listing of the roles.
      */
     public function index(): Response
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::INDEX_ROLE->value);
 
         return Inertia::render('admin/roles/Index', [
-            'roles' => Role::with('permissions')->get()->map(function ($role) {
+            'roles' => Role::with('permissions')->paginate(10)->through(function ($role) {
                 return [
                     'id' => $role->id,
                     'name' => $role->name,
@@ -38,7 +46,7 @@ class RoleController extends Controller
      */
     public function create(): Response
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::CREATE_ROLE->value);
 
         return Inertia::render('admin/roles/Create', [
             'permissions' => PermissionModel::all()->map(function ($permission) {
@@ -55,7 +63,7 @@ class RoleController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::CREATE_ROLE->value);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:roles,name'],
@@ -78,7 +86,7 @@ class RoleController extends Controller
      */
     public function edit(Role $role): Response
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::UPDATE_ROLE->value);
 
         return Inertia::render('admin/roles/Edit', [
             'role' => [
@@ -100,7 +108,7 @@ class RoleController extends Controller
      */
     public function update(Request $request, Role $role): RedirectResponse
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::UPDATE_ROLE->value);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('roles')->ignore($role->id)],
@@ -123,7 +131,7 @@ class RoleController extends Controller
      */
     public function destroy(Role $role): RedirectResponse
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::DELETE_ROLE->value);
 
         // Don't allow deleting built-in roles
         if (in_array($role->name, array_map(fn($case) => $case->value, \App\Enum\Role::cases()))) {

@@ -1,8 +1,17 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, TrashIcon, PlusIcon } from 'lucide-vue-next';
@@ -14,7 +23,27 @@ interface Role {
 }
 
 interface Props {
-    roles: Role[];
+    roles: {
+        data: Role[];
+        links: {
+            first: string;
+            last: string;
+            prev: string | null;
+            next: string | null;
+        };
+        current_page: number;
+        from: number;
+        last_page: number;
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
+        path: string;
+        per_page: number;
+        to: number;
+        total: number;
+    };
 }
 
 const props = defineProps<Props>();
@@ -55,37 +84,37 @@ const deleteRole = (roleId: number) => {
 
             <!-- Role list -->
             <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <Table class="min-w-full">
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>
                                 Name
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </TableHead>
+                            <TableHead>
                                 Permissions
-                            </th>
-                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            </TableHead>
+                            <TableHead class="text-right">
                                 Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr v-for="role in props.roles" :key="role.id">
-                            <td class="px-6 py-4 whitespace-nowrap">
+                            </TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        <TableRow v-for="role in props.roles.data" :key="role.id">
+                            <TableCell class="px-6 py-4 whitespace-nowrap">
                                 {{ role.name }}
-                            </td>
-                            <td class="px-6 py-4">
+                            </TableCell>
+                            <TableCell class="px-6 py-4">
                                 <div class="flex flex-wrap gap-1">
                                     <span
                                         v-for="permission in role.permissions"
                                         :key="permission"
-                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                                        class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium dark:bg-green-800 dark:text-green-100 bg-green-100 text-green-800"
                                     >
                                         {{ permission }}
                                     </span>
                                 </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            </TableCell>
+                            <TableCell class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex justify-end space-x-2">
                                     <Link :href="route('admin.roles.edit', { role: role.id })">
                                         <Button variant="ghost" size="icon">
@@ -96,10 +125,47 @@ const deleteRole = (roleId: number) => {
                                         <TrashIcon class="h-4 w-4 text-red-500" />
                                     </Button>
                                 </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="mt-4">
+                <Pagination :items-per-page="props.roles.per_page" :total="props.roles.total" :default-page="props.roles.from">
+                    <PaginationContent>
+                        <a v-if="props.roles.links.prev" href="#" @click.prevent="router.visit(props.roles.links.prev, { preserveState: true, preserveScroll: true, only: ['roles'] })">
+                            <PaginationPrevious />
+                        </a>
+
+                        <template v-for="(link, index) in props.roles.links" :key="index">
+                            <!-- Skip previous and next links as they're handled separately -->
+                            <template v-if="link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;'">
+                                <a v-if="!isNaN(parseInt(link.label)) && link.url" href="#" @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['roles'] })">
+                                    <PaginationItem
+                                        :value="parseInt(link.label)"
+                                        :is-active="link.active"
+                                    >
+                                        {{ link.label }}
+                                    </PaginationItem>
+                                </a>
+                                <PaginationItem
+                                    v-else-if="!isNaN(parseInt(link.label))"
+                                    :value="parseInt(link.label)"
+                                    :is-active="link.active"
+                                >
+                                    {{ link.label }}
+                                </PaginationItem>
+                                <PaginationEllipsis v-else-if="link.label === '...'" />
+                            </template>
+                        </template>
+
+                        <a v-if="props.roles.links.next" href="#" @click.prevent="router.visit(props.roles.links.next, { preserveState: true, preserveScroll: true, only: ['roles'] })">
+                            <PaginationNext />
+                        </a>
+                    </PaginationContent>
+                </Pagination>
             </div>
         </div>
     </AppLayout>

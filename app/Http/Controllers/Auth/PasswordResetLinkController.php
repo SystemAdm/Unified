@@ -92,7 +92,7 @@ class PasswordResetLinkController extends Controller
             \Illuminate\Support\Facades\Log::info('Token created successfully using CustomTokenRepository', ['token_length' => strlen($token)]);
 
             // Send the password reset notification
-            $user->sendPasswordResetNotification($token);
+            \Illuminate\Support\Facades\Notification::send($user, new \Illuminate\Auth\Notifications\ResetPassword($token));
             \Illuminate\Support\Facades\Log::info('Password reset notification sent');
 
             $result = Password::RESET_LINK_SENT;
@@ -157,7 +157,7 @@ class PasswordResetLinkController extends Controller
         \Illuminate\Support\Facades\Log::info('Token created successfully using CustomTokenRepository', ['token_length' => strlen($token)]);
 
         // Send the password reset notification
-        $user->sendPasswordResetNotification($token);
+        \Illuminate\Support\Facades\Notification::send($user, new \Illuminate\Auth\Notifications\ResetPassword($token));
         \Illuminate\Support\Facades\Log::info('Password reset notification sent');
 
         return redirect()->route('login')->with('status', __('A reset link will be sent if the account exists.'));

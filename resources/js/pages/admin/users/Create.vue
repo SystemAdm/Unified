@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
+import { type DateValue, getLocalTimeZone, today } from '@internationalized/date';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import InputError from '@/components/InputError.vue';
@@ -7,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DatePicker } from '@/components/ui/datepicker';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 interface Role {
     id: number;
@@ -36,25 +40,67 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// Create a ref to track selected birthday, initialized with today's date
+const selectedDate = ref<DateValue>(today(getLocalTimeZone()));
+
 const form = useForm({
     name: '',
     email: '',
+    phone: '',
     password: '',
+    birthday: '',
     roles: [] as number[],
 });
 
+// Update form.birthday when selectedDate changes
+watch(selectedDate, (newDate) => {
+    if (newDate) {
+        // Convert the DateValue to YYYY-MM-DD format for the form
+        const year = newDate.year;
+        const month = newDate.month.toString().padStart(2, '0');
+        const day = newDate.day.toString().padStart(2, '0');
+        form.birthday = `${year}-${month}-${day}`;
+    } else {
+        form.birthday = '';
+    }
+});
+
 const toggleRole = (roleId: number) => {
+    console.log('toggleRole called with roleId:', roleId);
+    console.log('Before toggle - form.roles:', form.roles);
+
     const index = form.roles.indexOf(roleId);
     if (index === -1) {
-        form.roles.push(roleId);
+        // Create a new array with the new role added
+        form.roles = [...form.roles, roleId];
     } else {
-        form.roles.splice(index, 1);
+        // Create a new array without the role
+        form.roles = form.roles.filter(id => id !== roleId);
     }
+
+    console.log('After toggle - form.roles:', form.roles);
 };
 
 const submit = () => {
+    console.log('Submitting with roles:', form.roles);
+    console.log('Form data:', form);
+
+    // Check if at least one role is selected
+    if (form.roles.length === 0) {
+        console.log('No roles selected, setting error');
+        form.setError('roles', 'The roles field is required.');
+        return;
+    }
+
+    console.log('Posting form data to server');
     form.post(route('admin.users.store'), {
         preserveScroll: true,
+        onSuccess: () => {
+            console.log('Form submitted successfully');
+        },
+        onError: (errors) => {
+            console.log('Form submission failed with errors:', errors);
+        }
     });
 };
 </script>
@@ -63,9 +109,11 @@ const submit = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Create User" />
 
-        <div class="flex flex-col space-y-6">
+        <Card class="flex flex-col space-y-6 w-[350px]">
+            <CardHeader>
             <HeadingSmall title="Create User" description="Add a new user to the system" />
-
+            </CardHeader>
+            <CardContent>
             <form @submit.prevent="submit" class="space-y-6">
                 <div class="grid gap-4">
                     <!-- Name -->
@@ -95,6 +143,29 @@ const submit = () => {
                         <InputError :message="form.errors.email" />
                     </div>
 
+                    <!-- Phone -->
+                    <div class="grid gap-2">
+                        <Label for="phone">Phone</Label>
+                        <Input
+                            id="phone"
+                            v-model="form.phone"
+                            type="tel"
+                            autocomplete="tel"
+                        />
+                        <InputError :message="form.errors.phone" />
+                    </div>
+
+                    <!-- Birthday -->
+                    <div class="grid gap-2">
+                        <Label for="birthday">Birthday</Label>
+                        <DatePicker
+                            id="birthday"
+                            v-model="selectedDate"
+                            :placeholder="selectedDate"
+                        />
+                        <InputError :message="form.errors.birthday" />
+                    </div>
+
                     <!-- Password -->
                     <div class="grid gap-2">
                         <Label for="password">Password</Label>
@@ -115,8 +186,8 @@ const submit = () => {
                             <div v-for="role in props.roles" :key="role.id" class="flex items-center space-x-2">
                                 <Checkbox
                                     :id="`role-${role.id}`"
-                                    :checked="form.roles.includes(role.id)"
-                                    @update:checked="toggleRole(role.id)"
+                                    :model-value="form.roles.includes(role.id)"
+                                    @update:model-value="toggleRole(role.id)"
                                 />
                                 <Label :for="`role-${role.id}`" class="cursor-pointer">{{ role.name }}</Label>
                             </div>
@@ -132,6 +203,7 @@ const submit = () => {
                     <Button type="submit" :disabled="form.processing">Create User</Button>
                 </div>
             </form>
-        </div>
+            </CardContent>
+        </Card>
     </AppLayout>
 </template>

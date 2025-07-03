@@ -112,4 +112,18 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Shared Credentials
+    |--------------------------------------------------------------------------
+    |
+    | This option determines whether multiple user accounts can be assigned to
+    | the same credentials (email and phone). When enabled, multiple users can
+    | share the same email address or phone number. When disabled, emails and
+    | phones must be unique across all users.
+    |
+    */
+
+    'allow_shared_credentials' => env('AUTH_ALLOW_SHARED_CREDENTIALS', true),
+
 ];

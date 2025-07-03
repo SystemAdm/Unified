@@ -11,8 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->foreignId('organization_id')->nullable()->after('id')->constrained('organization')->onDelete('set null');
+        Schema::create('organization_user', function (Blueprint $table) {
+            //$table->id();
+            $table->foreignId('organization_id')->nullable()->constrained('organizations')->cascadeOnDelete();;;
+            $table->foreignId('user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->boolean('is_chairman')->default(false)->comment('Is the user the chairman of the organization?');
+            $table->boolean('is_board')->default(false)->comment('Is the user a board member of the organization?');
+            $table->boolean('is_contact')->default(false)->comment('Is the user a contact of the organization?');
+            $table->primary(['organization_id', 'user_id']);
+            $table->timestamps();
         });
     }
 

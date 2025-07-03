@@ -21,10 +21,10 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
 
-    Route::get('login/choose-user/{email_id}', [AuthenticatedSessionController::class, 'chooseUser'])
+    Route::get('login/choose-user/{identifier_type}/{identifier_id}', [AuthenticatedSessionController::class, 'chooseUser'])
         ->name('login.choose-user');
 
-    Route::post('login/choose-user/{email_id}', [AuthenticatedSessionController::class, 'authenticateChosenUser'])
+    Route::post('login/choose-user/{identifier_type}/{identifier_id}', [AuthenticatedSessionController::class, 'authenticateChosenUser'])
         ->name('login.authenticate-chosen-user');
 
     Route::get('login/password/{user_id}', [AuthenticatedSessionController::class, 'showPasswordForm'])

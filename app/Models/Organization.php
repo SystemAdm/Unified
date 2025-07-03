@@ -2,14 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Multitenancy\Models\Tenant;
 
 class Organization extends Tenant
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
+
 
     /**
      * The attributes that are mass assignable.
@@ -23,8 +24,8 @@ class Organization extends Tenant
     /**
      * Get the users that belong to the organization.
      */
-    public function users(): HasMany
+    public function users(): BelongsToMany
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class)->withPivot(['is_chairman', 'is_board', 'is_contact'])->withTimestamps();
     }
 }

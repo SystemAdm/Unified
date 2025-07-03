@@ -6,9 +6,13 @@ use App\Auth\CustomPasswordBroker;
 use App\Auth\CustomTokenRepository;
 use Illuminate\Auth\Passwords\PasswordBrokerManager;
 use Illuminate\Support\ServiceProvider;
+use libphonenumber\PhoneNumberUtil;
 
 class AppServiceProvider extends ServiceProvider
 {
+    private PhoneNumberUtil $phoneUtil;
+    private string $countryCode;
+
     /**
      * Register any application services.
      */
@@ -21,6 +25,17 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('auth.password.broker', function ($app) {
             return $app->make('auth.password')->broker();
         });
+
+        // Binder PhoneNumberUtil til tjenestebeholderen som en singleton
+        $this->app->singleton(PhoneNumberUtil::class, function () {
+            return PhoneNumberUtil::getInstance();
+        });
+
+        // Binder country code til tjenestebeholderen
+        $this->app->singleton('countryCode', function () {
+            return 'NO'; // Norge
+        });
+
     }
 
     /**
@@ -28,6 +43,5 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Our custom password broker implementation is now handled by CustomPasswordBrokerManager
     }
 }

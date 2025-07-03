@@ -44,9 +44,11 @@ const form = useForm({
 const togglePermission = (permissionId: number) => {
     const index = form.permissions.indexOf(permissionId);
     if (index === -1) {
-        form.permissions.push(permissionId);
+        // Create a new array with the new permission added
+        form.permissions = [...form.permissions, permissionId];
     } else {
-        form.permissions.splice(index, 1);
+        // Create a new array without the permission
+        form.permissions = form.permissions.filter(id => id !== permissionId);
     }
 };
 
@@ -86,8 +88,8 @@ const submit = () => {
                             <div v-for="permission in props.permissions" :key="permission.id" class="flex items-center space-x-2">
                                 <Checkbox
                                     :id="`permission-${permission.id}`"
-                                    :checked="form.permissions.includes(permission.id)"
-                                    @update:checked="togglePermission(permission.id)"
+                                    :model-value="form.permissions.includes(permission.id)"
+                                    @update:model-value="togglePermission(permission.id)"
                                 />
                                 <Label :for="`permission-${permission.id}`" class="cursor-pointer">{{ permission.name }}</Label>
                             </div>

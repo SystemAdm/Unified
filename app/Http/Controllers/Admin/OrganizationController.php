@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enum\Permission;
-use App\Http\Controllers\Controller;
+use App\Http\Controllers\Admin\AdminController;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,16 +12,28 @@ use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
-class OrganizationController extends Controller
+class OrganizationController extends AdminController
 {
+    /**
+     * Constructor to authorize admin access
+     */
+    public function __construct()
+    {
+        // Ensure this is called for every request to this controller
+        $this->middleware(function ($request, $next) {
+            $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+            return $next($request);
+        });
+    }
+
     /**
      * Display a listing of the organizations.
      */
     public function index(): Response
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::INDEX_ORGANIZATION->value);
 
-        $organizations = Organization::withCount('users')->get();
+        $organizations = Organization::withCount('users')->paginate(10);
 
         return Inertia::render('admin/organizations/Index', [
             'organizations' => $organizations,
@@ -33,7 +45,7 @@ class OrganizationController extends Controller
      */
     public function create(): Response
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::CREATE_ORGANIZATION->value);
 
         return Inertia::render('admin/organizations/Create');
     }
@@ -43,7 +55,7 @@ class OrganizationController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::CREATE_ORGANIZATION->value);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('organization', 'name')],
@@ -62,7 +74,7 @@ class OrganizationController extends Controller
      */
     public function edit(Organization $organization): Response
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::UPDATE_ORGANIZATION->value);
 
         $organization->load(['users']);
 
@@ -77,7 +89,7 @@ class OrganizationController extends Controller
      */
     public function update(Request $request, Organization $organization): RedirectResponse
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::UPDATE_ORGANIZATION->value);
 
         $request->validate([
             'name' => ['required', 'string', 'max:255', Rule::unique('organization', 'name')->ignore($organization->id)],
@@ -96,7 +108,7 @@ class OrganizationController extends Controller
      */
     public function destroy(Organization $organization): RedirectResponse
     {
-        $this->authorize(Permission::ADMIN_ORGANIZATION->value);
+        $this->authorize(Permission::DELETE_ORGANIZATION->value);
 
         // Check if organization has users
         if ($organization->users()->count() > 0) {

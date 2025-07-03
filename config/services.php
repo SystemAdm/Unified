@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'gravatar' => [
+        'key' => env('GRAVATAR_SECRET_KEY'),
+    ],
+
 ];

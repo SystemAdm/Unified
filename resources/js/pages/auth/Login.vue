@@ -15,7 +15,7 @@ defineProps<{
 }>();
 
 const form = useForm({
-    email: '',
+    identifier: '',
     remember: false,
 });
 
@@ -27,7 +27,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthBase title="Log in to your account" description="Enter your email below to log in">
+    <AuthBase title="Log in to your account" description="Enter your email or phone number below to log in">
         <Head title="Log in" />
 
         <div v-if="status" class="mb-4 text-center text-sm font-medium text-green-600">
@@ -37,18 +37,18 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="identifier">Email or Phone Number</Label>
                     <Input
-                        id="email"
-                        type="email"
+                        id="identifier"
+                        type="text"
                         required
                         autofocus
                         :tabindex="1"
-                        autocomplete="email"
-                        v-model="form.email"
-                        placeholder="email@example.com"
+                        autocomplete="username"
+                        v-model="form.identifier"
+                        placeholder="email@example.com or +1234567890"
                     />
-                    <InputError :message="form.errors.email" />
+                    <InputError :message="form.errors.identifier" />
                 </div>
 
                 <div class="flex justify-end">

@@ -7,6 +7,21 @@ Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
 
+// Event routes
+Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'show'])->name('events.show');
+Route::post('/events/{event}/signup', [\App\Http\Controllers\EventController::class, 'signup'])->name('events.signup')->middleware('auth');
+Route::delete('/events/{event}/signup', [\App\Http\Controllers\EventController::class, 'removeSignup'])->name('events.remove-signup')->middleware('auth');
+Route::post('/events/{event}/join', [\App\Http\Controllers\EventController::class, 'join'])->name('events.join')->middleware('auth');
+
+// Location routes
+Route::get('/locations', [\App\Http\Controllers\LocationController::class, 'index'])->name('locations.index');
+Route::get('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'show'])->name('locations.show');
+
+// Organization routes
+Route::get('/organizations', [\App\Http\Controllers\OrganizationController::class, 'index'])->name('organizations.index');
+Route::get('/organizations/{organization}', [\App\Http\Controllers\OrganizationController::class, 'show'])->name('organizations.show');
+
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
