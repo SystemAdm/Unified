@@ -12,11 +12,11 @@ use Inertia\Inertia;
 class EventController extends Controller
 {
     /**
-     * Constructor to authorize admin access
+     * Constructor
      */
     public function __construct()
     {
-        $this->authorize(Permission::ADMIN_EVENT->value);
+        // No authorization check in constructor
     }
 
     /**
@@ -26,16 +26,13 @@ class EventController extends Controller
     {
         $this->authorize(Permission::INDEX_EVENT->value);
 
-        $events = Event::with(['location', 'organizers'])
+        $events = Event::with(['location', 'organizations','users'])
             ->orderBy('start_date', 'desc')
             ->paginate(10);
 
         // Transform the events to include the location name and user
         $events->through(function ($event) {
             $event->location = $event->location ? $event->location->name : null;
-            // Get the first organizer as the user
-            $organizer = $event->organizers->first();
-            $event->user = $organizer ? ['id' => $organizer->id, 'name' => $organizer->name] : null;
             return $event;
         });
 

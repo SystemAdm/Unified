@@ -1,25 +1,17 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { PlusIcon, PencilIcon, TrashIcon, CalendarIcon, MapPinIcon, UserIcon } from 'lucide-vue-next';
-import { Link } from '@inertiajs/vue3';
 import { formatDate } from '@/utils';
+import { CalendarIcon, MapPinIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-vue-next';
 
-interface User {
-    id: number;
+interface Organizer {
+    link: string | null;
     name: string;
 }
 
@@ -29,9 +21,9 @@ interface Event {
     description: string;
     start_date: string;
     end_date: string;
-    location: string;
+    location: { name: string } | null;
     status: string;
-    user: User | null;
+    organizer: Organizer | null;
 }
 
 interface Props {
@@ -53,6 +45,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const goto = (url: string) => {
+    router.get(url, { preserveState: true, preserveScroll: true });
+};
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -103,11 +98,11 @@ const decodeHtmlEntities = (html: string) => {
         <Head title="Manage Events" />
 
         <div class="flex flex-col space-y-6">
-            <div class="flex justify-between items-center">
+            <div class="flex items-center justify-between">
                 <HeadingSmall title="Events" description="Manage your events" class="m-3" />
                 <Link :href="route('admin.events.create')">
                     <Button>
-                        <PlusIcon class="h-4 w-4 mr-2" />
+                        <PlusIcon class="mr-2 h-4 w-4" />
                         Add Event
                     </Button>
                 </Link>
@@ -115,9 +110,7 @@ const decodeHtmlEntities = (html: string) => {
 
             <!-- Events list -->
             <div class="space-y-4">
-                <div v-if="props.events.data.length === 0" class="p-4 text-center text-gray-500">
-                    No events found.
-                </div>
+                <div v-if="props.events.data.length === 0" class="p-4 text-center text-gray-500">No events found.</div>
                 <div v-else class="overflow-x-auto">
                     <Table>
                         <TableHeader>
@@ -133,32 +126,39 @@ const decodeHtmlEntities = (html: string) => {
                         <TableBody>
                             <TableRow v-for="event in props.events.data" :key="event.id">
                                 <TableCell class="p-3">
-                                    <Link :href="route('admin.events.show', { event: event.id })" class="hover:text-blue-600 dark:hover:text-blue-400">
+                                    <Link
+                                        :href="route('admin.events.show', { event: event.id })"
+                                        class="hover:text-blue-600 dark:hover:text-blue-400"
+                                    >
                                         {{ event.title }}
                                     </Link>
                                 </TableCell>
                                 <TableCell class="p-3">
                                     <div class="flex items-center">
-                                        <CalendarIcon class="h-4 w-4 mr-2" />
+                                        <CalendarIcon class="mr-2 h-4 w-4" />
                                         {{ formatEventDate(event.start_date) }}
                                     </div>
                                 </TableCell>
                                 <TableCell class="p-3">
                                     <div v-if="event.location" class="flex items-center">
-                                        <MapPinIcon class="h-4 w-4 mr-2" />
-                                        {{ event.location }}
+                                        <MapPinIcon class="mr-2 h-4 w-4" />
+                                        {{ event.location.name }}
                                     </div>
                                     <span v-else class="text-gray-400">-</span>
                                 </TableCell>
                                 <TableCell class="p-3">
-                                    <span class="px-2 py-1 rounded-full text-xs font-medium" :class="getStatusClass(event.status)">
+                                    <span class="rounded-full px-2 py-1 text-xs font-medium" :class="getStatusClass(event.status)">
                                         {{ event.status }}
                                     </span>
                                 </TableCell>
                                 <TableCell class="p-3">
-                                    <div v-if="event.user" class="flex items-center">
-                                        <UserIcon class="h-4 w-4 mr-2" />
-                                        {{ event.user.name }}
+                                    <div v-if="event.organizer" class="flex items-center">
+                                        <div v-if="event.organizer.link">
+                                            <Button variant="link" @click.prevent="goto(event.organizer.link)">
+                                                {{ event.organizer.name }}
+                                            </Button>
+                                        </div>
+                                        <div v-else>{{ event.organizer.name }}</div>
                                     </div>
                                     <span v-else class="text-gray-400">-</span>
                                 </TableCell>
@@ -166,16 +166,12 @@ const decodeHtmlEntities = (html: string) => {
                                     <div class="flex justify-end space-x-2">
                                         <Link :href="route('admin.events.edit', { event: event.id })">
                                             <Button variant="outline" size="sm">
-                                                <PencilIcon class="h-4 w-4 mr-2" />
+                                                <PencilIcon class="mr-2 h-4 w-4" />
                                                 Edit
                                             </Button>
                                         </Link>
-                                        <Button
-                                            variant="destructive"
-                                            size="sm"
-                                            @click="confirmDelete(event.id, event.title)"
-                                        >
-                                            <TrashIcon class="h-4 w-4 mr-2" />
+                                        <Button variant="destructive" size="sm" @click="confirmDelete(event.id, event.title)">
+                                            <TrashIcon class="mr-2 h-4 w-4" />
                                             Delete
                                         </Button>
                                     </div>
@@ -205,10 +201,7 @@ const decodeHtmlEntities = (html: string) => {
                                     href="#"
                                     @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
                                 >
-                                    <PaginationItem
-                                        :value="parseInt(decodeHtmlEntities(link.label))"
-                                        :is-active="link.active"
-                                    >
+                                    <PaginationItem :value="parseInt(decodeHtmlEntities(link.label))" :is-active="link.active">
                                         {{ decodeHtmlEntities(link.label) }}
                                     </PaginationItem>
                                 </a>
@@ -230,9 +223,7 @@ const decodeHtmlEntities = (html: string) => {
                                 </a>
 
                                 <!-- Ellipsis -->
-                                <PaginationEllipsis
-                                    v-else-if="link.label === '...'"
-                                />
+                                <PaginationEllipsis v-else-if="link.label === '...'" />
                             </template>
                         </PaginationContent>
                     </Pagination>

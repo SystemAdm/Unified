@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
+import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TrashIcon } from 'lucide-vue-next';
 
 interface User {
     id: number;
@@ -27,7 +29,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-
+const unassignUser = (userId: number) => {
+    console.log(userId);
+}
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
@@ -93,20 +97,26 @@ const submit = () => {
                     No users in this organization.
                 </div>
                 <div v-else class="overflow-x-auto mt-4">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100">
-                                <th class="p-3 text-left">Name</th>
-                                <th class="p-3 text-left">Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="user in props.users" :key="user.id" class="border-b">
-                                <td class="p-3">{{ user.name }}</td>
-                                <td class="p-3">{{ user.email }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <Table class="w-full border-collapse">
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow v-for="user in props.users" :key="user.id" class="border-b">
+                                <TableCell>{{ user.name }}</TableCell>
+                                <TableCell>{{ user.email }}</TableCell>
+                                <TableCell class="px-6 whitespace-nowrap text-right text-sm font-medium">
+                                    <Button variant="destructive" size="sm" @click="unassignUser(user.id)">
+                                        <TrashIcon class="h-4 w-4 mr-2" />
+                                        Delete
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
                 </div>
             </div>
         </div>

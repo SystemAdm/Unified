@@ -48,7 +48,7 @@ interface Event {
     max_age: number | null;
     class_restriction: string | null;
     restriction: string;
-    organizers: User[];
+    users: User[];
     organizations: Organization[];
 }
 
@@ -138,7 +138,7 @@ const signupStartOption = ref(determineSignupStartOption());
 const signupEndOption = ref(determineSignupEndOption());
 
 // Initialize selected user and organization IDs from event data
-const selectedUserIds = ref<number[]>(props.event.organizers.map(user => user.id));
+const selectedUserIds = ref<number[]>(props.event.users.map(user => user.id));
 const selectedOrgIds = ref<number[]>(props.event.organizations.map(org => org.id));
 
 const form = useForm({
@@ -149,11 +149,11 @@ const form = useForm({
     location_id: props.event.location_id,
     status: props.event.status,
     has_signup: props.event.has_signup,
-    signup_start_date: formatDateForInput(props.event.signup_start_date),
-    signup_end_date: formatDateForInput(props.event.signup_end_date),
+    signup_start_date: <date|null> formatDateForInput(props.event.signup_start_date),
+    signup_end_date: <date|null> formatDateForInput(props.event.signup_end_date),
     seats: props.event.seats,
-    min_age: props.event.min_age,
-    max_age: props.event.max_age,
+    min_age: <int> props.event.min_age,
+    max_age: <int> props.event.max_age,
     class_restriction: props.event.class_restriction || '',
     restriction: props.event.restriction,
     user_ids: selectedUserIds.value,

@@ -32,6 +32,7 @@ class Event extends Model
         'cancellation_reason',
         'status',
     ];
+    protected $appends = ['organization', 'organizer','user'];
 
     /**
      * The attributes that should be cast.
@@ -62,9 +63,9 @@ class Event extends Model
     /**
      * Get the users organizing the event.
      */
-    public function organizers()
+    public function users()
     {
-        return $this->belongsToMany(User::class, 'event_user')
+        return $this->belongsToMany(User::class)
             ->withTimestamps();
     }
 
@@ -73,7 +74,7 @@ class Event extends Model
      */
     public function organizations()
     {
-        return $this->belongsToMany(Organization::class, 'event_organization')
+        return $this->belongsToMany(Organization::class)
             ->withTimestamps();
     }
 
@@ -153,8 +154,28 @@ class Event extends Model
     /**
      * For backward compatibility with existing code
      */
-    public function user()
+    public function getUserAttribute()
     {
-        return $this->organizers()->first();
+        return $this->users()->wherePivot('is_primary', true)->first();
+    }
+
+    public function getOrganizationAttribute()
+    {
+        return $this->organizations()->wherePivot('is_primary', true)->first();
+    }
+
+    public function getOrganizerAttribute()
+    {
+        $link = null;
+        $name = $this->organization?->name ?? $this->user?->name ?? null;
+        $type = ($this->organization ?'/organizations':null) ?? ($this->user?'/users':null);
+        $id= ($this->organization ? '/'.$this->organization->id.'/edit':null)??($this->user?'/'.$this->user->id:null);
+        if ($type && $id) {
+            $link = '/admin'.$type.$id;
+        }
+        return [
+            'link' => $link,
+            'name' => $name,
+        ];
     }
 }

@@ -50,7 +50,7 @@ return new class extends Migration
         Schema::create('event_user', function (Blueprint $table) {
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->enum('role', ['organizer', 'signupped', 'registered', 'attending'])->default('organizer');
+            $table->boolean('is_primary')->default(false);
             $table->timestamps();
 
             $table->primary(['event_id', 'user_id', 'role']);
@@ -60,6 +60,7 @@ return new class extends Migration
         Schema::create('event_organization', function (Blueprint $table) {
             $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->foreignId('organization_id')->constrained()->onDelete('cascade');
+            $table->boolean('is_primary')->default(false);
             $table->timestamps();
 
             $table->primary(['event_id', 'organization_id']);

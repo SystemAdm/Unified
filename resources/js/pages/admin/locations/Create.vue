@@ -70,7 +70,7 @@ const submit = () => {
                         </div>
 
                         <!-- Address Information -->
-                        <HeadingSmall>Address Information</HeadingSmall>
+                        <HeadingSmall title="Address Information" />
 
                         <div class="space-y-4">
                             <div>
@@ -109,19 +109,19 @@ const submit = () => {
                         </div>
 
                         <!-- Additional Information -->
-                        <HeadingSmall>Additional Information</HeadingSmall>
+                        <HeadingSmall title="Additional Information" />
 
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label for="latitude">Latitude</Label>
-                                    <Input id="latitude" v-model="form.latitude" type="number" step="0.0000001" class="mt-1 block w-full" />
+                                    <Input id="latitude" model-value="form.latitude" type="number" step="0.0000001" class="mt-1 block w-full" />
                                     <InputError :message="form.errors.latitude" class="mt-2" />
                                 </div>
 
                                 <div>
                                     <Label for="longitude">Longitude</Label>
-                                    <Input id="longitude" v-model="form.longitude" type="number" step="0.0000001" class="mt-1 block w-full" />
+                                    <Input id="longitude" model-value="form.longitude" type="number" step="0.0000001" class="mt-1 block w-full" />
                                     <InputError :message="form.errors.longitude" class="mt-2" />
                                 </div>
                             </div>
