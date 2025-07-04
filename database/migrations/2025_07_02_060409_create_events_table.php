@@ -53,7 +53,7 @@ return new class extends Migration
             $table->boolean('is_primary')->default(false);
             $table->timestamps();
 
-            $table->primary(['event_id', 'user_id', 'role']);
+            $table->primary(['event_id', 'user_id']);
         });
 
         // Event organizers (organizations)
