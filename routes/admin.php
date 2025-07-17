@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\OrganizationController;
-use App\Http\Controllers\Admin\PhoneController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\PermissionController;
+use App\Http\Controllers\Admin\GuardianVerificationController;
+use App\Http\Controllers\Admin\PhoneController;
+use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -16,6 +18,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('/', function () {
         return Inertia::render('admin/Index');
     })->name('index');
+
+    Route::resource('games', GameController::class);
 
     // Organization management routes
     Route::resource('organizations', OrganizationController::class);
@@ -62,4 +66,8 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
 
     // Location management routes
     Route::resource('locations', LocationController::class);
+
+    // Guardian verification routes
+    Route::get('guardian-verification', [GuardianVerificationController::class, 'index'])->name('guardian-verification.index');
+    Route::post('guardian-verification/{id}/verify', [GuardianVerificationController::class, 'verify'])->name('guardian-verification.verify');
 });

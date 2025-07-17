@@ -28,15 +28,15 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Users',
-        href: '/admin/users',
+        href: route('admin.users.index'),
     },
     {
         title: 'Create User',
-        href: '/admin/users/create',
+        href: route('admin.users.create'),
     },
 ];
 

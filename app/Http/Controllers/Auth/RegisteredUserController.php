@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Enum\Role as RoleEnum;
 use App\Http\Controllers\Controller;
+use App\Models\Email;
+use App\Models\Phone;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -28,12 +30,12 @@ class RegisteredUserController extends Controller
         // If identifier information is provided, fetch the identifier value
         if ($identifierType && $identifierId) {
             if ($identifierType === 'email') {
-                $email = \App\Models\Email::find($identifierId);
+                $email = Email::find($identifierId);
                 if ($email) {
                     $identifier = $email->address;
                 }
             } elseif ($identifierType === 'phone') {
-                $phone = \App\Models\Phone::find($identifierId);
+                $phone = Phone::find($identifierId);
                 if ($phone) {
                     $identifier = $phone->phone_number;
                 }
@@ -113,7 +115,7 @@ class RegisteredUserController extends Controller
 
         if ($identifierType && $identifierId) {
             if ($identifierType === 'email') {
-                $email = \App\Models\Email::find($identifierId);
+                $email = Email::find($identifierId);
                 if ($email) {
                     $existingIdentifier = true;
                     // Validate that the email is not already associated with a user
@@ -124,7 +126,7 @@ class RegisteredUserController extends Controller
                     }
                 }
             } elseif ($identifierType === 'phone') {
-                $phone = \App\Models\Phone::find($identifierId);
+                $phone = Phone::find($identifierId);
                 if ($phone) {
                     $existingIdentifier = true;
                     // Validate that the phone is not already associated with a user
@@ -200,11 +202,11 @@ class RegisteredUserController extends Controller
         } else {
             // Create and associate a new identifier
             if ($request->has('email')) {
-                $email = \App\Models\Email::create(['address' => $request->input('email')]);
+                $email = Email::create(['address' => $request->input('email')]);
                 $user->emails()->attach($email->id, ['is_primary' => true]);
                 $user->setPrimaryEmail($email);
             } elseif ($request->has('phone')) {
-                $phone = new \App\Models\Phone();
+                $phone = new Phone();
                 $phone->phone_number = $request->input('phone');
                 $phone->save();
                 $user->phones()->attach($phone->id, ['is_primary' => true]);

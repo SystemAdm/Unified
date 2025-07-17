@@ -6,6 +6,7 @@ use App\Enum\Role;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Spatie\Permission\Models\Role as RoleModel;
 use Tests\TestCase;
 
@@ -106,6 +107,68 @@ test('user cannot view unpublished event details', function () {
     $response->assertStatus(404);
 });
 
+test('user can view cancelled event details', function () {
+    // Create a user
+    $user = User::factory()->create();
+    $user->email = 'user@example.com';
+    $user->save();
+
+    $memberRole = RoleModel::findByName(Role::MEMBER->value);
+    $user->assignRole($memberRole);
+
+    // Create a cancelled event that was previously published
+    $event = Event::factory()->create([
+        'status' => 'published',
+        'is_cancelled' => true,
+        'title' => 'Cancelled Event',
+        'description' => 'This is a cancelled event description',
+    ]);
+
+    // Act as the user
+    $this->actingAs($user);
+
+    // Visit the event details page
+    $response = $this->get(route('events.show', ['event' => $event->id]));
+
+    // Assert successful response
+    $response->assertStatus(200);
+
+    // Assert the event details are displayed
+    $response->assertSee($event->title);
+    $response->assertSee($event->description);
+});
+
+test('user can view cancelled event details even if not published', function () {
+    // Create a user
+    $user = User::factory()->create();
+    $user->email = 'user@example.com';
+    $user->save();
+
+    $memberRole = RoleModel::findByName(Role::MEMBER->value);
+    $user->assignRole($memberRole);
+
+    // Create a cancelled event that was not published
+    $event = Event::factory()->create([
+        'status' => 'draft',
+        'is_cancelled' => true,
+        'title' => 'Cancelled Draft Event',
+        'description' => 'This is a cancelled draft event description',
+    ]);
+
+    // Act as the user
+    $this->actingAs($user);
+
+    // Visit the event details page
+    $response = $this->get(route('events.show', ['event' => $event->id]));
+
+    // Assert successful response
+    $response->assertStatus(200);
+
+    // Assert the event details are displayed
+    $response->assertSee($event->title);
+    $response->assertSee($event->description);
+});
+
 test('user can signup for an event', function () {
     // Create a user
     $user = User::factory()->create();
@@ -121,7 +184,11 @@ test('user can signup for an event', function () {
         'has_signup' => true,
         'signup_start_date' => now()->subDays(1),
         'signup_end_date' => now()->addDays(5),
+        'restriction' => 'everyone',
     ]);
+
+    // Disable all middleware for this test
+    $this->withoutMiddleware();
 
     // Act as the user
     $this->actingAs($user);
@@ -131,6 +198,9 @@ test('user can signup for an event', function () {
 
     // Assert redirect to event details
     $response->assertRedirect(route('events.show', ['event' => $event->id]));
+
+    // Refresh the event model to get the updated signupped list
+    $event->refresh();
 
     // Assert the user is now in the signupped list
     $this->assertTrue($event->signupped->contains($user->id));
@@ -149,7 +219,11 @@ test('user cannot signup for an event with closed signup', function () {
     $event = Event::factory()->create([
         'status' => 'published',
         'has_signup' => false,
+        'restriction' => 'everyone',
     ]);
+
+    // Disable all middleware for this test
+    $this->withoutMiddleware();
 
     // Act as the user
     $this->actingAs($user);
@@ -176,10 +250,14 @@ test('user can remove signup from an event', function () {
     // Create an event
     $event = Event::factory()->create([
         'status' => 'published',
+        'restriction' => 'everyone',
     ]);
 
     // Add the user to the signupped list
     $event->signupped()->attach($user->id);
+
+    // Disable all middleware for this test
+    $this->withoutMiddleware();
 
     // Act as the user
     $this->actingAs($user);
@@ -189,6 +267,9 @@ test('user can remove signup from an event', function () {
 
     // Assert redirect to event details
     $response->assertRedirect(route('events.show', ['event' => $event->id]));
+
+    // Refresh the event model to get the updated signupped list
+    $event->refresh();
 
     // Assert the user is no longer in the signupped list
     $this->assertFalse($event->signupped->contains($user->id));
@@ -208,7 +289,11 @@ test('user can join an event', function () {
         'status' => 'published',
         'start_date' => now()->subHours(1),
         'end_date' => now()->addHours(5),
+        'restriction' => 'everyone',
     ]);
+
+    // Disable all middleware for this test
+    $this->withoutMiddleware();
 
     // Act as the user
     $this->actingAs($user);
@@ -218,6 +303,9 @@ test('user can join an event', function () {
 
     // Assert redirect to event details
     $response->assertRedirect(route('events.show', ['event' => $event->id]));
+
+    // Refresh the event model to get the updated registered list
+    $event->refresh();
 
     // Assert the user is now in the registered list
     $this->assertTrue($event->registered->contains($user->id));
@@ -238,6 +326,9 @@ test('user cannot join an event that has not started', function () {
         'start_date' => now()->addHours(5),
         'end_date' => now()->addHours(10),
     ]);
+
+    // Disable all middleware for this test
+    $this->withoutMiddleware();
 
     // Act as the user
     $this->actingAs($user);

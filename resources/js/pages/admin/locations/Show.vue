@@ -1,11 +1,21 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface LocationImage {
     id: number;
@@ -39,17 +49,12 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { name: 'Admin', href: route('admin.index') },
-    { name: 'Locations', href: route('admin.locations.index') },
-    { name: props.location.name, href: route('admin.locations.show', props.location.id) },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Locations', href: route('admin.locations.index') },
+    { title: props.location.name, href: route('admin.locations.show', { location: props.location.id }) },
 ];
 
-const showDeleteModal = ref(false);
-
-const deleteLocation = () => {
-    // Use Inertia to delete the location
-    window.location.href = route('admin.locations.destroy', props.location.id);
-};
+// No longer need showDeleteModal ref and deleteLocation function as we're using AlertDialog
 </script>
 
 <template>
@@ -60,7 +65,7 @@ const deleteLocation = () => {
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">{{ location.name }}</h1>
                 <div class="flex space-x-2">
-                    <Link :href="route('admin.locations.edit', location.id)">
+                    <Link :href="route('admin.locations.edit', { location: location.id })">
                         <Button>Edit Location</Button>
                     </Link>
                 </div>
@@ -156,22 +161,28 @@ const deleteLocation = () => {
             </Card>
 
             <div class="flex justify-between mt-6">
-                <Button variant="destructive" @click="showDeleteModal = true">Delete Location</Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Delete Location</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure you want to delete this location?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the location from the system.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction @click="router.delete(route('admin.locations.destroy', { location: location.id }))">
+                                Delete
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
                 <Link :href="route('admin.locations.index')">
                     <Button variant="outline">Back to Locations</Button>
                 </Link>
-            </div>
-        </div>
-
-        <!-- Delete Confirmation Modal -->
-        <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-md w-full">
-                <h2 class="text-xl font-semibold mb-4">Confirm Deletion</h2>
-                <p class="mb-6">Are you sure you want to delete this location? This action cannot be undone.</p>
-                <div class="flex justify-end space-x-3">
-                    <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
-                    <Button variant="destructive" @click="deleteLocation">Delete</Button>
-                </div>
             </div>
         </div>
     </AppLayout>

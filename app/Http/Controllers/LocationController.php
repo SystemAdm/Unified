@@ -14,9 +14,8 @@ class LocationController extends Controller
      */
     public function index()
     {
-        $this->authorize(Permission::INDEX_LOCATION->value);
         $locations = Location::orderBy('name')
-            ->paginate(12);
+            ->paginate(9);
 
         return Inertia::render('locations/Index', [
             'locations' => $locations,
@@ -28,7 +27,6 @@ class LocationController extends Controller
      */
     public function show(Location $location)
     {
-        $this->authorize(Permission::SHOW_LOCATION->value);
 
         // Load related events
         $location->load(['events' => function ($query) {

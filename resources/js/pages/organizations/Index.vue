@@ -32,10 +32,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Organizations',
-        href: '/organizations',
-    },
+    { title: 'Organizations', href: route('organizations.index') },
 ];
 
 // Decode HTML entities for pagination

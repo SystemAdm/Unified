@@ -86,15 +86,15 @@ class EventFactory extends Factory
     {
         return $this->afterCreating(function (\App\Models\Event $event) {
             // Randomly attach organizers (users)
-            if ($this->faker->boolean(80)) { // 80% chance of having organizers
+            if ($this->faker->boolean(10)) { // 10% chance of having organizers
                 $users = \App\Models\User::inRandomOrder()->limit(rand(1, 3))->get();
                 foreach ($users as $user) {
-                    $event->organizers()->attach($user);
+                    $event->users()->attach($user);
                 }
             }
 
             // Randomly attach organizations
-            if ($this->faker->boolean(50)) { // 50% chance of having organizations
+            if ($this->faker->boolean(90)) { // 90% chance of having organizations
                 $organizations = \App\Models\Organization::inRandomOrder()->limit(rand(1, 2))->get();
                 if ($organizations->count() > 0) {
                     $event->organizations()->attach($organizations);

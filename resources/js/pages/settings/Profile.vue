@@ -35,6 +35,7 @@ const currentAvatarType = ref(user.avatar_type || 'initials');
 const avatarImage = ref<File | null>(null);
 const previewUrl = ref<string | null>(null);
 
+
 const form = useForm({
     name: user.name,
     avatar_type: currentAvatarType.value,
@@ -331,6 +332,7 @@ const submit = () => {
                     </div>
                 </form>
             </div>
+
 
             <DeleteUser />
         </SettingsLayout>

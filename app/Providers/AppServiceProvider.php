@@ -36,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
             return 'NO'; // Norge
         });
 
+        // Payment functionality has been removed
     }
 
     /**
@@ -43,5 +44,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Payment functionality has been removed
     }
 }

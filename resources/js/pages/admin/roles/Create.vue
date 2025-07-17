@@ -24,15 +24,15 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Roles',
-        href: '/admin/roles',
+        href: route('admin.roles.index'),
     },
     {
         title: 'Create Role',
-        href: '/admin/roles/create',
+        href: route('admin.roles.create'),
     },
 ];
 

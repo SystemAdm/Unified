@@ -23,18 +23,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Admin',
-        href: '/admin',
-    },
-    {
-        title: 'Emails',
-        href: '/admin/emails',
-    },
-    {
-        title: 'Create Email',
-        href: '/admin/emails/create',
-    },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Emails', href: route('admin.emails.index') },
+    { title: 'Create Email', href: route('admin.emails.create') },
 ];
 
 const form = useForm({

@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { formatDate } from '@/utils';
-import { CalendarIcon, MapPinIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-vue-next';
+import { CalendarIcon, FilterIcon, MapPinIcon, PencilIcon, PlusIcon, TrashIcon } from 'lucide-vue-next';
 
 interface Organizer {
     link: string | null;
@@ -24,6 +29,21 @@ interface Event {
     location: { name: string } | null;
     status: string;
     organizer: Organizer | null;
+}
+
+interface Location {
+    id: number;
+    name: string;
+}
+
+interface User {
+    id: number;
+    name: string;
+}
+
+interface Organization {
+    id: number;
+    name: string;
 }
 
 interface Props {
@@ -42,6 +62,19 @@ interface Props {
         to: number;
         total: number;
     };
+    filters?: {
+        from_date?: string;
+        to_date?: string;
+        location_id?: number;
+        status?: string;
+        organizer_type?: string;
+        organizer_id?: number;
+        sort_field?: string;
+        sort_direction?: string;
+    };
+    locations?: Location[];
+    users?: User[];
+    organizations?: Organization[];
 }
 
 const props = defineProps<Props>();
@@ -50,19 +83,13 @@ const goto = (url: string) => {
 };
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Admin',
-        href: '/admin',
-    },
-    {
-        title: 'Events',
-        href: '/admin/events',
-    },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Events', href: route('admin.events.index') },
 ];
 
 // Format date for display
 const formatEventDate = (date: string) => {
-    return formatDate(date, 'MMM D, YYYY h:mm A');
+    return formatDate(date, 'ddd DD/MM/YYYY HH:mm');
 };
 
 const getStatusClass = (status: string) => {
@@ -91,6 +118,80 @@ const decodeHtmlEntities = (html: string) => {
     textarea.innerHTML = html;
     return textarea.value;
 };
+
+// Filter form
+const showFilters = ref(false);
+const form = useForm({
+    from_date: props.filters?.from_date || '',
+    to_date: props.filters?.to_date || '',
+    location_id: props.filters?.location_id || 'all',
+    status: props.filters?.status || 'all',
+    organizer_type: props.filters?.organizer_type || 'all',
+    organizer_id: props.filters?.organizer_id || 'all',
+    sort_field: props.filters?.sort_field || 'start_date',
+    sort_direction: props.filters?.sort_direction || 'desc',
+});
+
+// Available statuses
+const statuses = [
+    { value: 'published', label: 'Published' },
+    { value: 'draft', label: 'Draft' },
+    { value: 'cancelled', label: 'Cancelled' },
+];
+
+// Available sort fields
+const sortFields = [
+    { value: 'title', label: 'Title' },
+    { value: 'start_date', label: 'Date' },
+    { value: 'status', label: 'Status' },
+];
+
+// Available sort directions
+const sortDirections = [
+    { value: 'asc', label: 'A-Z (Ascending)' },
+    { value: 'desc', label: 'Z-A (Descending)' },
+];
+
+// Watch for changes in the organizer type to reset the organizer id
+watch(() => form.organizer_type, () => {
+    form.organizer_id = 'all';
+});
+
+// Apply filters
+const applyFilters = () => {
+    // Create a copy of the form data
+    const formData = { ...form };
+
+    // Convert 'all' values to empty strings for backend processing
+    if (formData.location_id === 'all') formData.location_id = '';
+    if (formData.status === 'all') formData.status = '';
+    if (formData.organizer_type === 'all') formData.organizer_type = '';
+    if (formData.organizer_id === 'all') formData.organizer_id = '';
+
+    router.get(route('admin.events.index'), formData, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['events', 'filters'],
+    });
+};
+
+// Reset filters
+const resetFilters = () => {
+    form.from_date = '';
+    form.to_date = '';
+    form.location_id = 'all';
+    form.status = 'all';
+    form.organizer_type = 'all';
+    form.organizer_id = 'all';
+    form.sort_field = 'start_date';
+    form.sort_direction = 'desc';
+    applyFilters();
+};
+
+// Toggle filters visibility
+const toggleFilters = () => {
+    showFilters.value = !showFilters.value;
+};
 </script>
 
 <template>
@@ -100,13 +201,175 @@ const decodeHtmlEntities = (html: string) => {
         <div class="flex flex-col space-y-6">
             <div class="flex items-center justify-between">
                 <HeadingSmall title="Events" description="Manage your events" class="m-3" />
-                <Link :href="route('admin.events.create')">
-                    <Button>
-                        <PlusIcon class="mr-2 h-4 w-4" />
-                        Add Event
+                <div class="flex space-x-2">
+                    <Button variant="outline" @click="toggleFilters">
+                        <FilterIcon class="mr-2 h-4 w-4" />
+                        {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
                     </Button>
-                </Link>
+                    <Link :href="route('admin.events.create')">
+                        <Button>
+                            <PlusIcon class="mr-2 h-4 w-4" />
+                            Add Event
+                        </Button>
+                    </Link>
+                </div>
             </div>
+
+            <!-- Filters -->
+            <Card v-if="showFilters" class="mb-6">
+                <CardContent class="pt-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Date Range -->
+                        <div class="space-y-2">
+                            <Label for="from_date">From Date</Label>
+                            <Input
+                                id="from_date"
+                                v-model="form.from_date"
+                                type="date"
+                                placeholder="From Date"
+                            />
+                        </div>
+                        <div class="space-y-2">
+                            <Label for="to_date">To Date</Label>
+                            <Input
+                                id="to_date"
+                                v-model="form.to_date"
+                                type="date"
+                                placeholder="To Date"
+                            />
+                        </div>
+
+                        <!-- Location -->
+                        <div class="space-y-2">
+                            <Label for="location_id">Location</Label>
+                            <Select v-model="form.location_id">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Locations</SelectItem>
+                                    <SelectItem
+                                        v-for="location in props.locations"
+                                        :key="location.id"
+                                        :value="location.id"
+                                    >
+                                        {{ location.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="space-y-2">
+                            <Label for="status">Status</Label>
+                            <Select v-model="form.status">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Statuses</SelectItem>
+                                    <SelectItem
+                                        v-for="status in statuses"
+                                        :key="status.value"
+                                        :value="status.value"
+                                    >
+                                        {{ status.label }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <!-- Organizer Type -->
+                        <div class="space-y-2">
+                            <Label for="organizer_type">Organizer Type</Label>
+                            <Select v-model="form.organizer_type">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select organizer type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Organizers</SelectItem>
+                                    <SelectItem value="user">User</SelectItem>
+                                    <SelectItem value="organization">Organization</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <!-- Organizer -->
+                        <div class="space-y-2">
+                            <Label for="organizer_id">Organizer</Label>
+                            <Select v-model="form.organizer_id" :disabled="!form.organizer_type">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select organizer" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All</SelectItem>
+                                    <template v-if="form.organizer_type === 'user'">
+                                        <SelectItem
+                                            v-for="user in props.users"
+                                            :key="user.id"
+                                            :value="user.id"
+                                        >
+                                            {{ user.name }}
+                                        </SelectItem>
+                                    </template>
+                                    <template v-else-if="form.organizer_type === 'organization'">
+                                        <SelectItem
+                                            v-for="org in props.organizations"
+                                            :key="org.id"
+                                            :value="org.id"
+                                        >
+                                            {{ org.name }}
+                                        </SelectItem>
+                                    </template>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <!-- Sort Field -->
+                        <div class="space-y-2">
+                            <Label for="sort_field">Sort By</Label>
+                            <Select v-model="form.sort_field">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Sort by" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="field in sortFields"
+                                        :key="field.value"
+                                        :value="field.value"
+                                    >
+                                        {{ field.label }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <!-- Sort Direction -->
+                        <div class="space-y-2">
+                            <Label for="sort_direction">Sort Direction</Label>
+                            <Select v-model="form.sort_direction">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Sort direction" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="direction in sortDirections"
+                                        :key="direction.value"
+                                        :value="direction.value"
+                                    >
+                                        {{ direction.label }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end space-x-2 mt-6">
+                        <Button variant="outline" @click="resetFilters">Reset</Button>
+                        <Button @click="applyFilters">Apply Filters</Button>
+                    </div>
+                </CardContent>
+            </Card>
 
             <!-- Events list -->
             <div class="space-y-4">

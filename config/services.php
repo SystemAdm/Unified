@@ -39,4 +39,6 @@ return [
         'key' => env('GRAVATAR_SECRET_KEY'),
     ],
 
+    // Payment services have been removed
+
 ];

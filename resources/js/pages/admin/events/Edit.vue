@@ -62,18 +62,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Admin',
-        href: '/admin',
-    },
-    {
-        title: 'Events',
-        href: '/admin/events',
-    },
-    {
-        title: 'Edit',
-        href: `/admin/events/${props.event.id}/edit`,
-    },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Events', href: route('admin.events.index') },
+    { title: props.event.title, href: route('admin.events.edit', { event: props.event.id }) },
 ];
 
 // Format date for form input (YYYY-MM-DDThh:mm)

@@ -118,6 +118,12 @@ const submit = () => {
                             {{ $t(`Agreement ${form.account_type === 'membership' ? 'members' : form.account_type}`) }}
                         </Label>
                     </div>
+                    <div class="text-xs text-muted-foreground">
+                        By checking this box, you agree to our
+                        <TextLink :href="route('legal.tos')" target="_blank">Terms of Service</TextLink>,
+                        <TextLink :href="route('legal.privacy')" target="_blank">Privacy Policy</TextLink>, and
+                        <TextLink :href="route('legal.cookie')" target="_blank">Cookie Policy</TextLink>.
+                    </div>
                     <InputError :message="form.errors.terms_accepted" />
                 </div>
 

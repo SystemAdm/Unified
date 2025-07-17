@@ -28,9 +28,9 @@ const form = useForm({
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Admin', href: '/admin' },
-    { title: 'Locations', href: '/admin/locations' },
-    { title: 'Create', href: '/admin/locations/create' },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Locations', href: route('admin.locations.index') },
+    { title: 'Create', href: route('admin.locations.create') },
 ];
 
 const submit = () => {

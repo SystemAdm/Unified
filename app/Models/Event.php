@@ -32,7 +32,7 @@ class Event extends Model
         'cancellation_reason',
         'status',
     ];
-    protected $appends = ['organization', 'organizer','user'];
+    protected $appends = [];
 
     /**
      * The attributes that should be cast.
@@ -177,5 +177,25 @@ class Event extends Model
             'link' => $link,
             'name' => $name,
         ];
+    }
+
+    /**
+     * Get the number of available seats for the event.
+     *
+     * @return int|null
+     */
+    public function getAvailableSeatsAttribute()
+    {
+        if ($this->seats === null) {
+            return null; // Unlimited seats
+        }
+
+        // Check if the relationship is already loaded to avoid additional queries
+        if ($this->relationLoaded('signupped')) {
+            return $this->seats - $this->getRelation('signupped')->count();
+        }
+
+        // If not loaded, load it once and cache the result
+        return $this->seats - $this->signupped()->count();
     }
 }

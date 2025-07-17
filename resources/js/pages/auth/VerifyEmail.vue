@@ -12,7 +12,15 @@ defineProps<{
 const form = useForm({});
 
 const submit = () => {
-    form.post(route('verification.send'));
+    form.post(route('verification.send'), {
+        preserveScroll: true,
+        onSuccess: () => {
+            // Handle success
+        },
+        onError: (errors) => {
+            console.error('Error sending verification email:', errors);
+        }
+    });
 };
 </script>
 

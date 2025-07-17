@@ -15,6 +15,17 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, TrashIcon, PlusIcon, StarIcon, ShieldCheckIcon } from 'lucide-vue-next';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface Email {
     id: number;
@@ -69,20 +80,15 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Users',
-        href: '/admin/users',
+        href: route('admin.users.index'),
     },
 ];
 
-const deleteUser = (userId: number) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-        // Use Inertia to delete the user
-        window.location.href = route('admin.users.destroy', { user: userId });
-    }
-};
+// No longer need deleteUser function as we're using AlertDialog
 </script>
 
 <template>
@@ -159,13 +165,31 @@ const deleteUser = (userId: number) => {
                             <TableCell class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex justify-end space-x-2">
                                     <Link :href="route('admin.users.edit', { user: user.id })">
-                                        <Button variant="ghost" size="icon">
+                                        <Button variant="outline" size="sm">
                                             <PencilIcon class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button variant="ghost" size="icon" @click="deleteUser(user.id)">
-                                        <TrashIcon class="h-4 w-4 text-red-500" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="sm">
+                                                <TrashIcon class="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the user from the system.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction @click="window.location.href = route('admin.users.destroy', { user: user.id })">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </TableCell>
                         </TableRow>

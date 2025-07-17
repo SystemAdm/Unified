@@ -14,11 +14,9 @@ class OrganizationController extends Controller
      */
     public function index()
     {
-        $this->authorize(Permission::INDEX_ORGANIZATION->value);
-
         $organizations = Organization::withCount('users')
             ->orderBy('name')
-            ->paginate(10);
+            ->paginate(9);
 
         return Inertia::render('organizations/Index', [
             'organizations' => $organizations,
@@ -30,9 +28,6 @@ class OrganizationController extends Controller
      */
     public function show(Organization $organization)
     {
-        // Check if the user has the SHOW_ORGANIZATION permission
-        $this->authorize(Permission::SHOW_ORGANIZATION->value);
-
         $organization->load(['users']);
 
         return Inertia::render('organizations/Show', [

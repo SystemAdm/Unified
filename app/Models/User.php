@@ -6,20 +6,26 @@ namespace App\Models;
 use Illuminate\Auth\MustVerifyEmail;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Enum\RelationGuarded;
+use App\Enum\RelationGuardian;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+// Payment functionality has been removed
+// use Laravel\Cashier\Billable;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Support\Facades\Log;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, CanResetPassword, HasRoles, MustVerifyEmail, SoftDeletes;
+    use HasFactory, Notifiable, CanResetPassword, HasRoles, MustVerifyEmail, SoftDeletes; // Billable trait removed
 
     /**
      * Determine if the user has verified their email address.
+     * Returns true if the user doesn't have an email address.
      *
      * @return bool
      */
@@ -27,7 +33,12 @@ class User extends Authenticatable
     {
         $primaryEmail = $this->getPrimaryEmail();
 
-        return $primaryEmail && $primaryEmail->pivot->verified_at !== null;
+        // If the user doesn't have an email, consider it as verified
+        if (!$primaryEmail) {
+            return true;
+        }
+
+        return $primaryEmail->pivot->verified_at !== null;
     }
 
     /**
@@ -439,5 +450,100 @@ class User extends Authenticatable
         }
 
         return $primaryEmail->pivot->verified_at;
+    }
+
+    /**
+     * Get the guardians of the user.
+     */
+    public function guardians(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'guardian_child', 'child_id', 'guardian_id')
+            ->withPivot(['relation_guarded', 'relation_guardian', 'verified_at', 'verified_by'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the children under the user's guardianship.
+     */
+    public function children(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'guardian_child', 'guardian_id', 'child_id')
+            ->withPivot(['relation_guarded', 'relation_guardian', 'verified_at', 'verified_by'])
+            ->withTimestamps();
+    }
+
+    /**
+     * Add a guardian to the user with specified relationship types.
+     *
+     * @param User $guardian The guardian user
+     * @param RelationGuarded $relationGuarded How the child is related to the guardian
+     * @param RelationGuardian $relationGuardian How the guardian is related to the child
+     * @return $this
+     */
+    public function addGuardian(User $guardian, RelationGuarded $relationGuarded, RelationGuardian $relationGuardian): static
+    {
+        $this->guardians()->attach($guardian, [
+            'relation_guarded' => $relationGuarded->value,
+            'relation_guardian' => $relationGuardian->value,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Add a child to the user's guardianship with specified relationship types.
+     *
+     * @param User $child The child user
+     * @param RelationGuarded $relationGuarded How the child is related to the guardian
+     * @param RelationGuardian $relationGuardian How the guardian is related to the child
+     * @return $this
+     */
+    public function addChild(User $child, RelationGuarded $relationGuarded, RelationGuardian $relationGuardian): static
+    {
+        $this->children()->attach($child, [
+            'relation_guarded' => $relationGuarded->value,
+            'relation_guardian' => $relationGuardian->value,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Verify the guardian relationship with a child.
+     *
+     * @param User $child The child user
+     * @param User $verifier The admin user who verified the relationship
+     * @return $this
+     */
+    public function verifyGuardianship(User $child, User $verifier): static
+    {
+        $this->children()->updateExistingPivot($child->id, [
+            'verified_at' => now(),
+            'verified_by' => $verifier->id,
+        ]);
+
+        return $this;
+    }
+
+    /**
+     * Check if the user is older than 18 years.
+     *
+     * @return bool
+     */
+    public function isOlderThanEighteen(): bool
+    {
+        return $this->birthday && \Carbon\Carbon::parse($this->birthday)->age >= 18;
+    }
+
+    /**
+     * This method previously created a setup intent for the user with explicit Stripe API key setting.
+     * Payment functionality has been removed.
+     *
+     * @return null
+     */
+    public function createSetupIntentWithKey()
+    {
+        // Payment functionality has been removed
+        return null;
     }
 }

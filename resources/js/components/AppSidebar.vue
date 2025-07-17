@@ -5,12 +5,25 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, CalendarIcon, Folder, LayoutGrid, Lock, Mail, MapPin, Phone, ShieldCheck, UserCog, Users } from 'lucide-vue-next';
+import {
+    BookOpen,
+    CalendarIcon,
+    Folder,
+    GamepadIcon,
+    LayoutGrid,
+    Lock,
+    Mail,
+    MapPin,
+    Phone,
+    ShieldCheck,
+    UserCog,
+    Users
+} from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage();
-const user = computed(() => page.props.auth.user);
+const user = computed(() => page.props.auth?.user || null);
 const userRoles = computed(() => user.value?.roles || []);
 
 // Check if user has admin privileges (ADMIN, MODERATOR, or OWNER role)
@@ -23,22 +36,22 @@ const mainNavItems = computed(() => {
     const items: NavItem[] = [
         {
             title: 'Dashboard',
-            href: '/dashboard',
+            href: route('dashboard'),
             icon: LayoutGrid,
         },
         {
             title: 'Events',
-            href: '/events',
+            href: route('events.index'),
             icon: CalendarIcon,
         },
         {
             title: 'Locations',
-            href: '/locations',
+            href: route('locations.index'),
             icon: MapPin,
         },
         {
             title: 'Organizations',
-            href: '/organizations',
+            href: route('organizations.index'),
             icon: Users,
         },
     ];
@@ -46,52 +59,58 @@ const mainNavItems = computed(() => {
     // Items only visible to admin users
     if (isAdmin.value) {
         items.push(
-
+            {
+              title: '-----------',
+              href:'',
+            },
             {
                 title: 'Admin Dashboard',
-                href: '/admin',
+                href: route('admin.index'),
                 icon: LayoutGrid,
             },
             {
-                title: 'Admin Organizations',
-                href: '/admin/organizations',
+                title: 'Organizations',
+                href: route('admin.organizations.index'),
                 icon: Users,
             },
             {
-                title:'Admin Events',
-                href: '/admin/events',
+                title:'Events',
+                href: route('admin.events.index'),
                 icon: CalendarIcon,
             },
             {
                 title: 'Users',
-                href: '/admin/users',
+                href: route('admin.users.index'),
                 icon: UserCog,
             },
             {
                 title: 'Phones',
-                href: '/admin/phones',
+                href: route('admin.phones.index'),
                 icon: Phone,
             },
             {
                 title: 'Emails',
-                href: '/admin/emails',
+                href: route('admin.emails.index'),
                 icon: Mail,
             },
             {
                 title: 'Locations',
-                href: '/admin/locations',
+                href: route('admin.locations.index'),
                 icon: MapPin,
             },
             {
                 title: 'Roles',
-                href: '/admin/roles',
+                href: route('admin.roles.index'),
                 icon: ShieldCheck,
             },
             {
                 title: 'Permissions',
-                href: '/admin/permissions',
+                href: route('admin.permissions.index'),
                 icon: Lock,
             },
+            {
+                title:'Games', href: route('admin.games.index'), icon: GamepadIcon,
+            }
         );
     }
 

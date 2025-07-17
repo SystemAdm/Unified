@@ -82,14 +82,8 @@ watch([action, model], ([newAction, newModel]) => {
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Admin',
-        href: '/admin',
-    },
-    {
-        title: 'Permissions',
-        href: '/admin/permissions',
-    },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Permissions', href: route('admin.permissions.index') },
 ];
 </script>
 

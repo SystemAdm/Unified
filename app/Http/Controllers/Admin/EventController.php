@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enum\Permission;
+use App\Events\SendEventToDiscord;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 
 class EventController extends Controller
@@ -22,22 +24,81 @@ class EventController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->authorize(Permission::INDEX_EVENT->value);
 
-        $events = Event::with(['location', 'organizations','users'])
-            ->orderBy('start_date', 'desc')
-            ->paginate(10);
+        $query = Event::with(['location', 'organizations', 'users']);
 
-        // Transform the events to include the location name and user
+        // Filter by date range
+        if ($request->has('from_date') && $request->from_date !== '' && $request->from_date !== null) {
+            $query->where('start_date', '>=', $request->from_date);
+        }
+        if ($request->has('to_date') && $request->to_date !== '' && $request->to_date !== null) {
+            $query->where('start_date', '<=', $request->to_date);
+        }
+
+        // Filter by location
+        if ($request->has('location_id') && $request->location_id) {
+            $query->where('location_id', $request->location_id);
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by organizer (organization or user)
+        if ($request->has('organizer_type') && $request->has('organizer_id') && $request->organizer_id) {
+            if ($request->organizer_type === 'user') {
+                $query->whereHas('users', function ($q) use ($request) {
+                    $q->where('users.id', $request->organizer_id);
+                });
+            } elseif ($request->organizer_type === 'organization') {
+                $query->whereHas('organizations', function ($q) use ($request) {
+                    $q->where('organizations.id', $request->organizer_id);
+                });
+            }
+        }
+
+        // Sorting
+        $sortField = $request->input('sort_field', 'start_date');
+        $sortDirection = $request->input('sort_direction', 'desc');
+
+        // Validate sort field to prevent SQL injection
+        $allowedSortFields = ['title', 'start_date', 'status'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'start_date';
+        }
+
+        // Validate sort direction
+        $allowedSortDirections = ['asc', 'desc'];
+        if (!in_array($sortDirection, $allowedSortDirections)) {
+            $sortDirection = 'desc';
+        }
+
+        $query->orderBy($sortField, $sortDirection);
+
+        $events = $query->paginate(10)->withQueryString();
+
+        // Transform the events to include the location name
         $events->through(function ($event) {
-            $event->location = $event->location ? $event->location->name : null;
             return $event;
         });
 
+        // Get locations for filter dropdown
+        $locations = \App\Models\Location::where('is_active', true)->get();
+
+        // Get users and organizations for organizer filter
+        $users = User::all();
+        $organizations = \App\Models\Organization::all();
+
         return Inertia::render('admin/events/Index', [
             'events' => $events,
+            'filters' => $request->only(['from_date', 'to_date', 'location_id', 'status', 'organizer_type', 'organizer_id', 'sort_field', 'sort_direction']),
+            'locations' => $locations,
+            'users' => $users,
+            'organizations' => $organizations,
         ]);
     }
 
@@ -126,14 +187,11 @@ class EventController extends Controller
     {
         $this->authorize(Permission::ADMIN_EVENT->value);
 
-        // Load the organizers relationship
-        $event->load(['location', 'organizers']);
+        // Load the relationships
+        $event->load(['location', 'users', 'organizations']);
 
-        // Transform the event to include the location name and user
+        // Transform the event to include the location name
         $event->location = $event->location ? $event->location->name : null;
-        // Get the first organizer as the user
-        $organizer = $event->organizers->first();
-        $event->user = $organizer ? ['id' => $organizer->id, 'name' => $organizer->name] : null;
 
         return Inertia::render('admin/events/Show', [
             'event' => $event,

@@ -66,7 +66,7 @@ class VerifyAdditionalEmail extends Notification
      */
     public function routeNotificationForMail($notifiable)
     {
-        return $this->email->address;
+        return [$this->email->address];
     }
 
     /**

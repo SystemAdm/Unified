@@ -105,5 +105,7 @@ class DatabaseSeeder extends Seeder
         // SAVE && REFRESH
         $oddUser->save();
         $oddUser->refresh();
+
+        $this->call(EventSeeder::class);
     }
 }

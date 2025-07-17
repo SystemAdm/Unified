@@ -40,18 +40,9 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Admin',
-        href: '/admin',
-    },
-    {
-        title: 'Events',
-        href: '/admin/events',
-    },
-    {
-        title: 'Create',
-        href: '/admin/events/create',
-    },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Events', href: route('admin.events.index') },
+    { title: 'Create', href: route('admin.events.create') },
 ];
 
 // Signup timing options

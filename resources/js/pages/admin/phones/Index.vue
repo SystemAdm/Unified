@@ -15,6 +15,17 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, TrashIcon, PlusIcon, StarIcon, ShieldCheckIcon } from 'lucide-vue-next';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface User {
     id: number;
@@ -62,19 +73,17 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Phones',
-        href: '/admin/phones',
+        href: route('admin.phones.index'),
     },
 ];
 
 const deletePhone = (phoneId: number) => {
-    if (confirm('Are you sure you want to delete this phone number?')) {
-        // Use Inertia to delete the phone
-        window.location.href = route('admin.phones.destroy', { phone: phoneId });
-    }
+    // Use Inertia to delete the phone
+    window.location.href = route('admin.phones.destroy', { phone: phoneId });
 };
 </script>
 
@@ -130,9 +139,27 @@ const deletePhone = (phoneId: number) => {
                                             <PencilIcon class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button variant="ghost" size="icon" @click="deletePhone(phone.id)">
-                                        <TrashIcon class="h-4 w-4 text-red-500" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <TrashIcon class="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the phone number from the system.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction @click="deletePhone(phone.id)">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </TableCell>
                         </TableRow>

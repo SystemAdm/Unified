@@ -137,6 +137,11 @@ class EmailController extends Controller
             abort(403, 'You do not own this email address.');
         }
 
+        // Check if the email is already verified
+        if ($pivot->verified_at) {
+            return Redirect::route('email.edit')->with('status', 'email-already-verified');
+        }
+
         // Send verification email
         $request->user()->notify(new VerifyAdditionalEmail($email));
 

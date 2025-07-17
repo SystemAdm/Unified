@@ -66,6 +66,18 @@ Route::middleware('auth')->group(function () {
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
+    Route::get('register-guardian', [App\Http\Controllers\Auth\GuardianRegistrationController::class, 'create'])
+        ->name('register.guardian');
+
+    Route::post('register-guardian', [App\Http\Controllers\Auth\GuardianRegistrationController::class, 'store']);
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
+
+    // Guardian profile completion routes
+    Route::get('complete-guardian-profile', [App\Http\Controllers\Auth\GuardianProfileController::class, 'create'])
+        ->name('guardian.complete-profile');
+
+    Route::post('complete-guardian-profile', [App\Http\Controllers\Auth\GuardianProfileController::class, 'store'])
+        ->name('guardian.complete-profile.store');
 });

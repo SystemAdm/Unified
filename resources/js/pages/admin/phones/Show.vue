@@ -34,15 +34,15 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Phones',
-        href: '/admin/phones',
+        href: route('admin.phones.index'),
     },
     {
         title: props.phone.phone_number,
-        href: `/admin/phones/${props.phone.id}`,
+        href: route('admin.phones.show', { phone: props.phone.id }),
     },
 ];
 </script>

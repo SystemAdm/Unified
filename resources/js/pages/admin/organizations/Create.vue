@@ -13,15 +13,15 @@ import { Link } from '@inertiajs/vue3';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Organizations',
-        href: '/admin/organizations',
+        href: route('admin.organizations.index'),
     },
     {
         title: 'Create',
-        href: '/admin/organizations/create',
+        href: route('admin.organizations.create'),
     },
 ];
 

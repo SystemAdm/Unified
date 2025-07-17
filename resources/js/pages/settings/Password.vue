@@ -11,11 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type BreadcrumbItem } from '@/types';
 
-const breadcrumbItems: BreadcrumbItem[] = [
-    {
-        title: 'Password settings',
-        href: '/settings/password',
-    },
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Password settings', href: route('settings.password') },
 ];
 
 const passwordInput = ref<HTMLInputElement | null>(null);
@@ -51,7 +48,7 @@ const updatePassword = () => {
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbItems">
+    <AppLayout :breadcrumbs="breadcrumbs">
         <Head title="Password settings" />
 
         <SettingsLayout>

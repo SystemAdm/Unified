@@ -11,6 +11,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PlusIcon, TrashIcon, StarIcon, ShieldCheckIcon } from 'lucide-vue-next';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface User {
     id: number;
@@ -77,13 +88,11 @@ const attachUser = () => {
 };
 
 const detachUser = (userId: number) => {
-    if (confirm('Are you sure you want to detach this user from the phone number?')) {
-        useForm({
-            user_id: userId,
-        }).delete(route('admin.phones.detach-user', { phone: props.phone.id }), {
-            preserveScroll: true,
-        });
-    }
+    useForm({
+        user_id: userId,
+    }).delete(route('admin.phones.detach-user', { phone: props.phone.id }), {
+        preserveScroll: true,
+    });
 };
 
 const setPrimary = (userId: number) => {
@@ -169,13 +178,30 @@ const setVerified = (userId: number) => {
                             >
                                 Mark as verified
                             </Button>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                @click="detachUser(user.id)"
-                            >
-                                <TrashIcon class="h-4 w-4 text-red-500" />
-                            </Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                    >
+                                        <TrashIcon class="h-4 w-4 text-red-500" />
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This action cannot be undone. This will detach the user from this phone number.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction @click="detachUser(user.id)">
+                                            Detach
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
                     </div>
                 </div>

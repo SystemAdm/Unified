@@ -316,7 +316,8 @@ class AuthenticatedSessionController extends Controller
         $identifierType = $request->session()->get('login_identifier_type', 'email');
 
         // For tests, if the user has a primary email that's not verified, redirect to verification notice
-        if (!$user->hasVerifiedEmail()) {
+        // Only check email verification if the user logged in with an email
+        if ($identifierType === 'email' && !$user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }
 
@@ -378,7 +379,8 @@ class AuthenticatedSessionController extends Controller
             $request->session()->put('login_identifier_type', $identifierType);
 
             // Redirect to email verification if the user's email is not verified
-            if (!$user->hasVerifiedEmail()) {
+            // Only check email verification if the user logged in with an email
+            if ($identifierType === 'email' && !$user->hasVerifiedEmail()) {
                 return redirect()->route('verification.notice');
             }
 

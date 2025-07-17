@@ -15,6 +15,17 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, TrashIcon, PlusIcon } from 'lucide-vue-next';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface Role {
     id: number;
@@ -51,19 +62,17 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Roles',
-        href: '/admin/roles',
+        href: route('admin.roles.index'),
     },
 ];
 
 const deleteRole = (roleId: number) => {
-    if (confirm('Are you sure you want to delete this role?')) {
-        // Use Inertia to delete the role
-        window.location.href = route('admin.roles.destroy', { role: roleId });
-    }
+    // Use Inertia to delete the role
+    window.location.href = route('admin.roles.destroy', { role: roleId });
 };
 </script>
 
@@ -121,9 +130,27 @@ const deleteRole = (roleId: number) => {
                                             <PencilIcon class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button variant="ghost" size="icon" @click="deleteRole(role.id)">
-                                        <TrashIcon class="h-4 w-4 text-red-500" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <TrashIcon class="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the role from the system.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction @click="deleteRole(role.id)">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </TableCell>
                         </TableRow>

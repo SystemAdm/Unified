@@ -29,10 +29,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Email settings',
-        href: '/settings/email',
-    },
+    { title: 'Email settings', href: route('email.edit') },
 ];
 
 
@@ -45,6 +42,10 @@ const editEmailForm = useForm({
     address: '',
 });
 
+const primaryEmailForm = useForm({});
+const verifyEmailForm = useForm({});
+const deleteEmailForm = useForm({});
+
 const addEmail = () => {
     addEmailForm.post(route('emails.store'), {
         preserveScroll: true,
@@ -55,20 +56,20 @@ const addEmail = () => {
 };
 
 const setPrimaryEmail = (emailId: number) => {
-    useForm().patch(route('emails.primary', { email: emailId }), {
+    primaryEmailForm.patch(route('emails.primary', { email: emailId }), {
         preserveScroll: true,
     });
 };
 
 const verifyEmail = (emailId: number) => {
-    useForm().post(route('emails.send-verification', { email: emailId }), {
+    verifyEmailForm.post(route('emails.send-verification', { email: emailId }), {
         preserveScroll: true,
     });
 };
 
 const deleteEmail = (emailId: number) => {
     if (confirm('Are you sure you want to delete this email address?')) {
-        useForm().delete(route('emails.destroy', { email: emailId }), {
+        deleteEmailForm.delete(route('emails.destroy', { email: emailId }), {
             preserveScroll: true,
         });
     }
@@ -96,6 +97,17 @@ const updateEmail = () => {
         <SettingsLayout>
             <div class="flex flex-col space-y-6">
                 <HeadingSmall title="Email addresses" description="Manage your email addresses" />
+
+                <!-- Status Messages -->
+                <div v-if="props.status === 'verification-link-sent'" class="p-4 mb-4 text-sm rounded-lg bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                    A verification link has been sent to your email address.
+                </div>
+                <div v-if="props.status === 'email-verified'" class="p-4 mb-4 text-sm rounded-lg bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+                    Your email address has been verified successfully.
+                </div>
+                <div v-if="props.status === 'email-already-verified'" class="p-4 mb-4 text-sm rounded-lg bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+                    This email address is already verified.
+                </div>
 
                 <!-- Email list -->
                 <div class="space-y-4">

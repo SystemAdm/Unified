@@ -25,6 +25,11 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@fortawesome/fontawesome-svg-core": "^6.7.2",
+        "@fortawesome/free-brands-svg-icons": "^6.7.2",
+        "@fortawesome/free-regular-svg-icons": "^6.7.2",
+        "@fortawesome/free-solid-svg-icons": "^6.7.2",
+        "@fortawesome/vue-fontawesome": "^3.0.8",
         "@inertiajs/vue3": "^2.0.0",
         "@tailwindcss/vite": "^4.1.11",
         "@tanstack/vue-table": "^8.21.3",
@@ -36,6 +41,7 @@
         "laravel-vite-plugin": "^1.0",
         "laravel-vue-i18n": "github:xiCO2k/laravel-vue-i18n",
         "lucide-vue-next": "^0.468.0",
+        "luxon": "^3.7.1",
         "reka-ui": "^2.3.2",
         "tailwind-merge": "^3.2.0",
         "tailwindcss": "^4.1.11",

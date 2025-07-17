@@ -12,6 +12,17 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, EyeIcon, PlusIcon, TrashIcon } from 'lucide-vue-next';
@@ -63,15 +74,11 @@ interface Props {
 defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Admin', href: '/admin' },
-    { title: 'Locations', href: '/admin/locations' },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Locations', href: route('admin.locations.index') },
 ];
 
-const deleteLocation = (id: number) => {
-    if (confirm('Are you sure you want to delete this location?')) {
-        router.delete(route('admin.locations.destroy', id));
-    }
-};
+// No longer need deleteLocation function as we're using AlertDialog
 </script>
 
 <template>
@@ -130,19 +137,37 @@ const deleteLocation = (id: number) => {
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex justify-end space-x-2">
-                                    <Link :href="route('admin.locations.show', location.id)">
-                                        <Button variant="ghost" size="icon">
+                                    <Link :href="route('admin.locations.show', { location: location.id })">
+                                        <Button variant="secondary" size="sm">
                                             <EyeIcon class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Link :href="route('admin.locations.edit', location.id)">
-                                        <Button variant="ghost" size="icon">
+                                    <Link :href="route('admin.locations.edit', { location: location.id })">
+                                        <Button variant="outline" size="sm">
                                             <PencilIcon class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button variant="ghost" size="icon" @click="deleteLocation(location.id)">
-                                        <TrashIcon class="h-4 w-4 text-red-500" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="destructive" size="sm">
+                                                <TrashIcon class="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the location from the system.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction @click="router.delete(route('admin.locations.destroy', { location: location.id }))">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </TableCell>
                         </TableRow>

@@ -15,6 +15,17 @@ import {
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, TrashIcon, PlusIcon, StarIcon, ShieldCheckIcon } from 'lucide-vue-next';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface User {
     id: number;
@@ -60,19 +71,17 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Admin',
-        href: '/admin',
+        href: route('admin.index'),
     },
     {
         title: 'Emails',
-        href: '/admin/emails',
+        href: route('admin.emails.index'),
     },
 ];
 
 const deleteEmail = (emailId: number) => {
-    if (confirm('Are you sure you want to delete this email address?')) {
-        // Use Inertia to delete the email
-        window.location.href = route('admin.emails.destroy', { email: emailId });
-    }
+    // Use Inertia to delete the email
+    window.location.href = route('admin.emails.destroy', { email: emailId });
 };
 </script>
 
@@ -128,9 +137,27 @@ const deleteEmail = (emailId: number) => {
                                             <PencilIcon class="h-4 w-4" />
                                         </Button>
                                     </Link>
-                                    <Button variant="ghost" size="icon" @click="deleteEmail(email.id)">
-                                        <TrashIcon class="h-4 w-4 text-red-500" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <TrashIcon class="h-4 w-4 text-red-500" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the email address from the system.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction @click="deleteEmail(email.id)">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </TableCell>
                         </TableRow>

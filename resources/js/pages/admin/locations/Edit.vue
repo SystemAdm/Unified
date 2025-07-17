@@ -11,6 +11,7 @@ import { Switch } from '@/components/ui/switch';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { BanIcon,SaveIcon } from 'lucide-vue-next';
 
 interface LocationImage {
     id: number;
@@ -60,9 +61,9 @@ const form = useForm({
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { name: 'Admin', href: route('admin.index') },
-    { name: 'Locations', href: route('admin.locations.index') },
-    { name: 'Edit', href: route('admin.locations.edit', props.location.id) },
+    { title: 'Admin', href: route('admin.index') },
+    { title: 'Locations', href: route('admin.locations.index') },
+    { title: props.location.name, href: route('admin.locations.edit', props.location.id) },
 ];
 
 const submit = () => {
@@ -103,7 +104,7 @@ const submit = () => {
                         </div>
 
                         <!-- Address Information -->
-                        <HeadingSmall>Address Information</HeadingSmall>
+                        <HeadingSmall title="Address Information" />
 
                         <div class="space-y-4">
                             <div>
@@ -142,19 +143,19 @@ const submit = () => {
                         </div>
 
                         <!-- Additional Information -->
-                        <HeadingSmall>Additional Information</HeadingSmall>
+                        <HeadingSmall title="Additional Information" />
 
                         <div class="space-y-4">
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <Label for="latitude">Latitude</Label>
-                                    <Input id="latitude" v-model="form.latitude" type="number" step="0.0000001" class="mt-1 block w-full" />
+                                    <Input id="latitude" model-value="form.latitude" type="number" step="0.0000001" class="mt-1 block w-full" />
                                     <InputError :message="form.errors.latitude" class="mt-2" />
                                 </div>
 
                                 <div>
                                     <Label for="longitude">Longitude</Label>
-                                    <Input id="longitude" v-model="form.longitude" type="number" step="0.0000001" class="mt-1 block w-full" />
+                                    <Input id="longitude" model-value="form.longitude" type="number" step="0.0000001" class="mt-1 block w-full" />
                                     <InputError :message="form.errors.longitude" class="mt-2" />
                                 </div>
                             </div>
@@ -206,8 +207,8 @@ const submit = () => {
                     </div>
 
                 <div class="flex justify-end space-x-3">
-                    <Button type="button" variant="outline" :href="route('admin.locations.index')">Cancel</Button>
-                    <Button type="submit" :disabled="form.processing">Update Location</Button>
+                    <Button type="button" variant="outline" :href="route('admin.locations.index')"><BanIcon />Cancel</Button>
+                    <Button type="submit" :disabled="form.processing"><SaveIcon />Update Location</Button>
                 </div>
             </form>
             </CardContent>

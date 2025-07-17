@@ -19,8 +19,16 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/password',
     },
     {
+        title: 'Guardian',
+        href: '/settings/guardian',
+    },
+    {
         title: 'Appearance',
         href: '/settings/appearance',
+    },
+    {
+        title: 'Membership',
+        href: '/settings/membership',
     },
 ];
 

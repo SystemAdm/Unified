@@ -1,39 +1,90 @@
 <?php
 
+use App\Http\Controllers\Auth\DashboardController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Middleware\YoungerThanEightTeen;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome');
-})->name('home');
+// Home page
+Route::get('/', [DashboardController::class, 'welcome'])->name('home');
+
+// Legal routes
+Route::prefix('legal')->name('legal.')->group(function () {
+    Route::get('/tos', function () {
+        return Inertia::render('legal/Tos');
+    })->name('tos');
+
+    Route::get('/privacy', function () {
+        return Inertia::render('legal/Privacy');
+    })->name('privacy');
+
+    Route::get('/cookie', function () {
+        return Inertia::render('legal/Cookie');
+    })->name('cookie');
+});
+
+// Games routes
+Route::resource('/games', GameController::class);
 
 // Event routes
-Route::get('/events', [\App\Http\Controllers\EventController::class, 'index'])->name('events.index');
-Route::get('/events/{event}', [\App\Http\Controllers\EventController::class, 'show'])->name('events.show');
-Route::post('/events/{event}/signup', [\App\Http\Controllers\EventController::class, 'signup'])->name('events.signup')->middleware('auth');
-Route::delete('/events/{event}/signup', [\App\Http\Controllers\EventController::class, 'removeSignup'])->name('events.remove-signup')->middleware('auth');
-Route::post('/events/{event}/join', [\App\Http\Controllers\EventController::class, 'join'])->name('events.join')->middleware('auth');
+Route::prefix('events')->name('events.')->group(function () {
+    Route::get('/', [EventController::class, 'index'])->name('index');
+    Route::get('/{event}', [EventController::class, 'show'])->name('show');
+
+    // Auth required event routes
+    Route::middleware('auth')->group(function () {
+        Route::post('/{event}/signup', [EventController::class, 'signup'])->name('signup');
+        Route::delete('/{event}/signup', [EventController::class, 'removeSignup'])->name('remove-signup');
+        Route::post('/{event}/join', [EventController::class, 'join'])->name('join');
+    });
+});
 
 // Location routes
-Route::get('/locations', [\App\Http\Controllers\LocationController::class, 'index'])->name('locations.index');
-Route::get('/locations/{location}', [\App\Http\Controllers\LocationController::class, 'show'])->name('locations.show');
+Route::prefix('locations')->name('locations.')->group(function () {
+    Route::get('/', [LocationController::class, 'index'])->name('index');
+    Route::get('/{location}', [LocationController::class, 'show'])->name('show');
+});
 
 // Organization routes
-Route::get('/organizations', [\App\Http\Controllers\OrganizationController::class, 'index'])->name('organizations.index');
-Route::get('/organizations/{organization}', [\App\Http\Controllers\OrganizationController::class, 'show'])->name('organizations.show');
+Route::prefix('organizations')->name('organizations.')->group(function () {
+    Route::get('/', [OrganizationController::class, 'index'])->name('index');
+    Route::get('/{organization}', [OrganizationController::class, 'show'])->name('show');
+});
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Contact form route
+Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
 
-// Debug routes for password reset
-Route::get('/debug-password-reset', [\App\Http\Controllers\DebugPasswordResetController::class, 'debug']);
-Route::get('/test-direct-token', [\App\Http\Controllers\TestPasswordResetController::class, 'testDirectTokenCreation']);
-Route::post('/test-password-reset', [\App\Http\Controllers\TestPasswordResetController::class, 'testPasswordReset']);
-Route::get('/debug-token', [\App\Http\Controllers\TestPasswordResetController::class, 'debugToken']);
-Route::get('/debug-summary', [\App\Http\Controllers\DebugSummaryController::class, 'summary']);
-Route::get('/fix-password-reset', [\App\Http\Controllers\FixPasswordResetController::class, 'fix']);
+// Dashboard route
+Route::middleware(['auth', 'verified', YoungerThanEightTeen::class])
+    ->get('dashboard', [DashboardController::class, 'index'])
+    ->name('dashboard');
 
-require __DIR__.'/settings.php';
-require __DIR__.'/admin.php';
-require __DIR__.'/auth.php';
+// Include other route files
+require __DIR__ . '/settings.php';
+require __DIR__ . '/admin.php';
+require __DIR__ . '/auth.php';
+
+// Debug routes - commented out for production
+// Uncomment for debugging purposes only
+/*
+Route::prefix('debug')->group(function () {
+    Route::get('/password-reset', [\App\Http\Controllers\DebugPasswordResetController::class, 'debug']);
+    Route::get('/direct-token', [\App\Http\Controllers\TestPasswordResetController::class, 'testDirectTokenCreation']);
+    Route::post('/password-reset', [\App\Http\Controllers\TestPasswordResetController::class, 'testPasswordReset']);
+    Route::get('/token', [\App\Http\Controllers\TestPasswordResetController::class, 'debugToken']);
+    Route::get('/summary', [\App\Http\Controllers\DebugSummaryController::class, 'summary']);
+    Route::get('/fix-password-reset', [\App\Http\Controllers\FixPasswordResetController::class, 'fix']);
+
+    // Test route for YoungerThanEightTeen middleware
+    Route::get('/age-check', function() {
+        // This route simulates a user born in 2009 (under 18)
+        // It will trigger the YoungerThanEightTeen middleware
+        return 'If you see this, the age check middleware did not redirect you.';
+    })->middleware(['auth', \App\Http\Middleware\YoungerThanEightTeen::class]);
+});
+*/

@@ -35,11 +35,11 @@ interface Props {
     location: Location;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Locations', href: '/locations' },
-    { title: 'Location Details', href: '#' },
+    { title: 'Locations', href: route('locations.index') },
+    { title: props.location.name, href: route('locations.show', props.location.id) },
 ];
 
 // Format date for display

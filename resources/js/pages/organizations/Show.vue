@@ -26,14 +26,8 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Organizations',
-        href: '/organizations',
-    },
-    {
-        title: props.organization.name,
-        href: `/organizations/${props.organization.id}`,
-    },
+    { title: 'Organizations', href: route('organizations.index') },
+    { title: props.organization.name, href: route('organizations.show', { organization: props.organization.id }) },
 ];
 </script>
 
