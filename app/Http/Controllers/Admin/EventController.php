@@ -176,6 +176,11 @@ class EventController extends Controller
             $event->organizations()->attach($validated['organization_ids']);
         }
 
+        // Dispatch event to Discord if the event is published
+        if ($event->status === 'published') {
+            SendEventToDiscord::dispatch($event);
+        }
+
         return redirect()->route('admin.events.index')
             ->with('success', 'Event created successfully.');
     }
@@ -248,6 +253,10 @@ class EventController extends Controller
             'organization_ids.*' => 'exists:organizations,id',
         ]);
 
+        // Check if the event status is changing to published
+        $wasPublished = $event->status === 'published';
+        $isNowPublished = $validated['status'] === 'published';
+
         // Update the event
         $event->update([
             'title' => $validated['title'],
@@ -276,6 +285,34 @@ class EventController extends Controller
             $event->organizations()->sync($validated['organization_ids']);
         }
 
+        // Dispatch event to Discord if the event is now published and wasn't before,
+        // or if it was already published but has been updated
+        if ($isNowPublished) {
+            if (!$wasPublished) {
+                // Event is being published for the first time
+                SendEventToDiscord::dispatch($event, 'create');
+            } else {
+                // Event was already published and is being updated
+                // Check if only restriction changed
+                $originalEvent = $event->getOriginal();
+                $restrictionChanged = $originalEvent['restriction'] !== $validated['restriction'];
+                $titleChanged = $originalEvent['title'] !== $validated['title'];
+                $dateChanged = $originalEvent['start_date'] !== $validated['start_date'];
+
+                if ($restrictionChanged && !$titleChanged && !$dateChanged) {
+                    // Only restriction changed
+                    SendEventToDiscord::dispatch($event, 'update-restriction');
+                } else {
+                    // General update (title, date, or multiple fields changed)
+                    $additionalData = [];
+                    if ($dateChanged) {
+                        $additionalData['new_date'] = \Carbon\Carbon::parse($validated['start_date'])->format('d/m/Y');
+                    }
+                    SendEventToDiscord::dispatch($event, 'update', $additionalData);
+                }
+            }
+        }
+
         return redirect()->route('admin.events.index')
             ->with('success', 'Event updated successfully.');
     }
@@ -286,6 +323,11 @@ class EventController extends Controller
     public function destroy(Event $event)
     {
         $this->authorize(Permission::DELETE_EVENT->value);
+
+        // Send delete notification to Discord if the event was published
+        if ($event->status === 'published') {
+            SendEventToDiscord::dispatch($event, 'delete');
+        }
 
         $event->delete();
 
@@ -365,6 +407,11 @@ class EventController extends Controller
         $event->cancelled_at = now();
         $event->cancellation_reason = $validated['cancellation_reason'];
         $event->save();
+
+        // Send cancel notification to Discord if the event was published
+        if ($event->status === 'published') {
+            SendEventToDiscord::dispatch($event, 'cancel');
+        }
 
         return redirect()->route('admin.events.show', ['event' => $event->id])
             ->with('success', 'Event has been cancelled.');
