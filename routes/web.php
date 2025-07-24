@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\Auth\DashboardController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\NewsController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Middleware\YoungerThanEightTeen;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +32,18 @@ Route::prefix('legal')->name('legal.')->group(function () {
 
 // Games routes
 Route::resource('/games', GameController::class);
+
+// News routes
+Route::prefix('news')->name('news.')->group(function () {
+    Route::get('/', [NewsController::class, 'index'])->name('index');
+    Route::get('/{news}', [NewsController::class, 'show'])->name('show');
+});
+
+// Announcement routes
+Route::prefix('announcements')->name('announcements.')->group(function () {
+    Route::get('/', [AnnouncementController::class, 'index'])->name('index');
+    Route::get('/{announcement}', [AnnouncementController::class, 'show'])->name('show');
+});
 
 // Event routes
 Route::prefix('events')->name('events.')->group(function () {

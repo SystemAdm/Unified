@@ -5,7 +5,7 @@ import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CalendarIcon, MapPinIcon, UserIcon, PencilIcon, TrashIcon } from 'lucide-vue-next';
+import { CalendarIcon, MapPinIcon, UserIcon, PencilIcon, TrashIcon, ExternalLinkIcon } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { formatDate } from '@/utils';
 
@@ -14,13 +14,29 @@ interface User {
     name: string;
 }
 
+interface Location {
+    id: number;
+    name: string;
+    description: string | null;
+    address: string | null;
+    city: string | null;
+    state: string | null;
+    country: string | null;
+    postal_code: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    image: string | null;
+    is_active: boolean;
+    full_address: string;
+}
+
 interface Event {
     id: number;
     title: string;
     description: string;
     start_date: string;
     end_date: string;
-    location: string;
+    location: Location | null;
     status: string;
     user: User | null;
 }
@@ -71,6 +87,12 @@ const confirmDelete = () => {
             <div class="flex justify-between items-center">
                 <HeadingSmall :title="props.event.title" description="Event details" class="m-3" />
                 <div class="flex space-x-2">
+                    <Link :href="route('events.show', { event: props.event.id })" target="_blank">
+                        <Button variant="outline">
+                            <ExternalLinkIcon class="h-4 w-4 mr-2" />
+                            View Public Page
+                        </Button>
+                    </Link>
                     <Link :href="route('admin.events.edit', { event: props.event.id })">
                         <Button variant="outline">
                             <PencilIcon class="h-4 w-4 mr-2" />
@@ -100,7 +122,27 @@ const confirmDelete = () => {
 
                             <div v-if="props.event.location" class="flex items-center text-gray-500 dark:text-gray-400 mb-2">
                                 <MapPinIcon class="h-4 w-4 mr-2" />
-                                <span>{{ props.event.location }}</span>
+                                <span class="mr-2">Location:</span>
+                                <Link :href="route('admin.locations.show', { location: props.event.location.id })"
+                                      class="text-blue-600 dark:text-blue-400 hover:underline">
+                                    {{ props.event.location.name }}
+                                </Link>
+                            </div>
+
+                            <!-- User Lists Links -->
+                            <div class="flex flex-wrap gap-2 mt-4">
+                                <Link :href="route('admin.events.users.all', { event: props.event.id })">
+                                    <Button variant="default" size="sm">
+                                        <UserIcon class="h-4 w-4 mr-2" />
+                                        Users
+                                    </Button>
+                                </Link>
+                                <Link :href="route('admin.events.validate-text', { event: props.event.id })">
+                                    <Button variant="outline" size="sm">
+                                        <PencilIcon class="h-4 w-4 mr-2" />
+                                        Validate Text
+                                    </Button>
+                                </Link>
                             </div>
 
                             <div v-if="props.event.user" class="flex items-center text-gray-500 dark:text-gray-400 mb-2">

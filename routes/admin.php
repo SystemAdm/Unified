@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\AnnouncementController;
+use App\Http\Controllers\Admin\BannerController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\GameController;
 use App\Http\Controllers\Admin\LocationController;
+use App\Http\Controllers\Admin\NewsController;
 use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\GuardianVerificationController;
@@ -20,6 +23,15 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     })->name('index');
 
     Route::resource('games', GameController::class);
+
+    // Banner management routes
+    Route::resource('banners', BannerController::class);
+
+    // Announcement management routes
+    Route::resource('announcements', AnnouncementController::class);
+
+    // News management routes
+    Route::resource('news', NewsController::class);
 
     // Organization management routes
     Route::resource('organizations', OrganizationController::class);
@@ -49,6 +61,16 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::post('events/{event}/copy-to-attending/{user}', [EventController::class, 'copyToAttending'])->name('events.copy-to-attending');
     Route::delete('events/{event}/remove-from-registered-attending/{user}', [EventController::class, 'removeFromRegisteredAttending'])->name('events.remove-from-registered-attending');
     Route::delete('events/{event}/remove-from-attending/{user}', [EventController::class, 'removeFromAttending'])->name('events.remove-from-attending');
+
+    // Event user list routes
+    Route::get('events/{event}/users/registered', [EventController::class, 'showRegisteredUsers'])->name('events.users.registered');
+    Route::get('events/{event}/users/visited', [EventController::class, 'showVisitedUsers'])->name('events.users.visited');
+    Route::get('events/{event}/users/inside', [EventController::class, 'showInsideUsers'])->name('events.users.inside');
+    Route::get('events/{event}/users', [EventController::class, 'showAllUsers'])->name('events.users.all');
+
+    // Encrypted text validation route
+    Route::get('events/{event}/validate-text', [EventController::class, 'showValidateText'])->name('events.validate-text');
+    Route::post('events/{event}/validate-text', [EventController::class, 'validateText'])->name('events.validate-text.submit');
 
     // Phone management routes
     Route::resource('phones', PhoneController::class);

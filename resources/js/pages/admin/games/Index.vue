@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { EyeIcon, PencilIcon, PlusIcon, TrashIcon,BanIcon } from 'lucide-vue-next';
+import { EyeIcon, PencilIcon, PlusIcon, TrashIcon, BanIcon, ExternalLinkIcon } from 'lucide-vue-next';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,12 +62,20 @@ const breadcrumbs: BreadcrumbItem[] = [
         <div class="flex flex-col space-y-6">
             <div class="flex items-center justify-between">
                 <HeadingSmall title="Games" description="Manage games in the system" />
-                <Link :href="route('admin.games.create')">
-                    <Button>
-                        <PlusIcon class="mr-2 h-4 w-4" />
-                        Add Game
-                    </Button>
-                </Link>
+                <div class="flex space-x-2">
+                    <Link href="/games">
+                        <Button variant="outline" class="gap-2">
+                            <ExternalLinkIcon class="h-4 w-4" />
+                            View Public Games
+                        </Button>
+                    </Link>
+                    <Link :href="route('admin.games.create')">
+                        <Button>
+                            <PlusIcon class="mr-2 h-4 w-4" />
+                            Add Game
+                        </Button>
+                    </Link>
+                </div>
             </div>
 
             <div class="overflow-x-auto">

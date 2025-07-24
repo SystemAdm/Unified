@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Access in Narrow View - Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .demo-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .demo-header {
+            background: #2563eb;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .viewport-simulator {
+            border: 2px solid #ddd;
+            margin: 20px;
+            background: white;
+            position: relative;
+        }
+
+        .viewport-controls {
+            padding: 10px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .width-slider {
+            flex: 1;
+            margin: 0 10px;
+        }
+
+        .width-display {
+            font-weight: bold;
+            min-width: 80px;
+        }
+
+        .simulated-app {
+            transition: width 0.3s ease;
+            margin: 0 auto;
+            background: #fff;
+            min-height: 400px;
+            position: relative;
+            border: 1px solid #e5e7eb;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            height: 64px;
+            box-sizing: border-box;
+        }
+
+        .hamburger-menu {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .hamburger-menu:hover {
+            background: #f3f4f6;
+        }
+
+        .hamburger-icon {
+            width: 16px;
+            height: 16px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .breadcrumbs {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .app-content {
+            padding: 20px;
+            color: #374151;
+        }
+
+        .instructions {
+            margin: 20px;
+            padding: 20px;
+            background: #f0f9ff;
+            border: 1px solid #0ea5e9;
+            border-radius: 8px;
+        }
+
+        .instructions h3 {
+            color: #0369a1;
+            margin-top: 0;
+        }
+
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+            border-left: 4px solid #10b981;
+        }
+
+        .highlight {
+            background: #fef3c7;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .mobile-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            background: #dc2626;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .desktop-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 8px;
+            background: #16a34a;
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>How to Open the Menu in Narrow View</h1>
+            <p>Interactive demonstration of the hamburger menu trigger</p>
+        </div>
+
+        <div class="viewport-simulator">
+            <div class="viewport-controls">
+                <label>Viewport Width:</label>
+                <input type="range" class="width-slider" min="320" max="1200" value="760" id="widthSlider">
+                <span class="width-display" id="widthDisplay">760px</span>
+            </div>
+
+            <div class="simulated-app" id="simulatedApp">
+                <div id="viewportIndicator" class="mobile-indicator">MOBILE VIEW</div>
+                <div class="app-header">
+                    <button class="hamburger-menu" id="hamburgerBtn">
+                        <svg class="hamburger-icon" viewBox="0 0 24 24">
+                            <path d="M3 6h18M3 12h18M3 18h18"/>
+                        </svg>
+                    </button>
+                    <div class="breadcrumbs">Dashboard</div>
+                </div>
+                <div class="app-content">
+                    <h3>Dashboard Content</h3>
+                    <p>This simulates your application content. Resize the viewport using the slider above to see how the menu trigger appears in narrow views.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="instructions">
+            <h3>🎯 How to Access the Menu in Narrow View:</h3>
+
+            <div class="step">
+                <strong>Step 1:</strong> Look for the <span class="highlight">hamburger menu button</span> (three horizontal lines) in the top-left corner of the header.
+            </div>
+
+            <div class="step">
+                <strong>Step 2:</strong> Click the hamburger menu button to open the sidebar menu.
+            </div>
+
+            <div class="step">
+                <strong>Step 3:</strong> The menu will slide out from the left side, showing all navigation options.
+            </div>
+
+            <div class="step">
+                <strong>Step 4:</strong> Click outside the menu or click the hamburger button again to close it.
+            </div>
+
+            <h4>📱 When does the hamburger menu appear?</h4>
+            <ul>
+                <li><strong>Below 760px width:</strong> Hamburger menu is visible (mobile mode)</li>
+                <li><strong>Above 760px width:</strong> Full sidebar is visible (desktop mode)</li>
+            </ul>
+
+            <h4>🔧 Technical Details:</h4>
+            <p>The menu trigger is implemented using the <code>SidebarTrigger</code> component with a <code>PanelLeft</code> icon. It's always present in the header but becomes the primary navigation method in narrow views.</p>
+        </div>
+    </div>
+
+    <script>
+        const slider = document.getElementById('widthSlider');
+        const widthDisplay = document.getElementById('widthDisplay');
+        const simulatedApp = document.getElementById('simulatedApp');
+        const viewportIndicator = document.getElementById('viewportIndicator');
+        const hamburgerBtn = document.getElementById('hamburgerBtn');
+
+        function updateViewport() {
+            const width = slider.value;
+            widthDisplay.textContent = width + 'px';
+            simulatedApp.style.width = width + 'px';
+
+            if (width <= 760) {
+                viewportIndicator.textContent = 'MOBILE VIEW';
+                viewportIndicator.className = 'mobile-indicator';
+            } else {
+                viewportIndicator.textContent = 'DESKTOP VIEW';
+                viewportIndicator.className = 'desktop-indicator';
+            }
+        }
+
+        slider.addEventListener('input', updateViewport);
+
+        hamburgerBtn.addEventListener('click', function() {
+            alert('🎉 Menu would open here!\n\nIn the actual application, this button opens the mobile sidebar menu with all navigation options.');
+        });
+
+        // Initialize
+        updateViewport();
+    </script>
+</body>
+</html>

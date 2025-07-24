@@ -3,8 +3,8 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { CalendarIcon, ClockIcon, MapPinIcon, UserIcon, BetweenHorizontalStartIcon, OctagonMinusIcon, ShieldHalfIcon } from 'lucide-vue-next';
 import { formatDate } from '@/utils';
+import { BetweenHorizontalStartIcon, CalendarIcon, ClockIcon, MapPinIcon, OctagonMinusIcon, ShieldHalfIcon, UserIcon } from 'lucide-vue-next';
 
 interface User {
     id: number;
@@ -35,6 +35,7 @@ interface Event {
 
 interface Props {
     event: Event;
+    isSignedUp: boolean;
 }
 
 const props = defineProps<Props>();
@@ -87,8 +88,7 @@ const isSignupOpen = (event: Event) => {
     const signupEndDate = event.signup_end_date ? new Date(event.signup_end_date) : null;
 
     // Check if current time is between signup start and end dates
-    return (!signupStartDate || now >= signupStartDate) &&
-           (!signupEndDate || now <= signupEndDate);
+    return (!signupStartDate || now >= signupStartDate) && (!signupEndDate || now <= signupEndDate);
 };
 
 // Check if event is restricted to everyone
@@ -108,10 +108,8 @@ const userMeetsRoleRequirements = (event: Event) => {
     if (event.restriction === 'everyone') return true;
 
     // Check if user has the required role
-    if (event.restriction === 'members' && user.roles.includes('member')) return true;
-    if (event.restriction === 'crew' && user.roles.includes('crew')) return true;
-
-    return false;
+    if (event.restriction === 'members' && user.roles?.includes('member')) return true;
+    return !!(event.restriction === 'crew' && user.roles?.includes('crew'));
 };
 
 // Check if user meets age requirements
@@ -140,9 +138,7 @@ const userMeetsAgeRequirements = (event: Event) => {
 
     // Check if user's age is within limits
     if (event.min_age !== null && age < event.min_age) return false;
-    if (event.max_age !== null && age > event.max_age) return false;
-
-    return true;
+    return !(event.max_age !== null && age > event.max_age);
 };
 </script>
 
@@ -161,11 +157,8 @@ const userMeetsAgeRequirements = (event: Event) => {
                 :alt="props.event.title"
                 class="h-64 w-full object-cover"
             />
-            <div
-                class="rounded-b-lg bg-card p-6 shadow-sm"
-                :class="{ 'bg-red-900': props.event.is_cancelled || props.event.status === 'cancelled' }"
-            >
-                <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-6">
+            <div class="rounded-b-lg bg-card p-6 shadow-sm" :class="{ 'bg-red-900': props.event.is_cancelled || props.event.status === 'cancelled' }">
+                <div class="mb-6 flex flex-col md:flex-row md:items-start md:justify-between">
                     <div class="w-full">
                         <h1 class="mb-4 text-2xl font-bold">{{ props.event.title }}</h1>
 
@@ -188,11 +181,8 @@ const userMeetsAgeRequirements = (event: Event) => {
 
                         <div v-if="props.event.location" class="mb-2 flex items-center text-muted-foreground">
                             <MapPinIcon class="mr-2 h-4 w-4" />
-                            <Link
-                                v-if="props.event.location.id"
-                                :href="route('locations.show', { id: props.event.location.id })"
-                                class="text-white"
-                            >
+                            <span class="mr-2">Location:</span>
+                            <Link v-if="props.event.location.id" :href="route('locations.show', { id: props.event.location.id })" class="text-white">
                                 {{ props.event.location.name }}
                             </Link>
                             <span v-else class="text-white">{{ props.event.location.name }}</span>
@@ -208,6 +198,7 @@ const userMeetsAgeRequirements = (event: Event) => {
                         <div v-if="props.event.seats !== null" class="mb-2 flex items-center text-muted-foreground">
                             <BetweenHorizontalStartIcon class="mr-2 h-4 w-4" />
                             <span class="mr-2">Available Seats:</span>
+                            <strong class="text-white">{{ props.event.seats }}</strong>
                             <strong class="text-white">{{ props.event.available_seats }}</strong>
                         </div>
 
@@ -245,7 +236,7 @@ const userMeetsAgeRequirements = (event: Event) => {
                         </div>
 
                         <div v-if="props.event.description" class="mt-6">
-                            <h3 class="text-lg font-semibold mb-2">Description</h3>
+                            <h3 class="mb-2 text-lg font-semibold">Description</h3>
                             <p class="whitespace-pre-line text-muted-foreground">{{ props.event.description }}</p>
                         </div>
 
@@ -263,16 +254,40 @@ const userMeetsAgeRequirements = (event: Event) => {
                     </div>
                 </div>
 
-                <div class="mt-8 pt-6 border-t">
-                    <div v-if="!props.event.is_cancelled && isSignupOpen(props.event) && (isRestrictedToEveryone(props.event) || (userMeetsRoleRequirements(props.event) && userMeetsAgeRequirements(props.event)))" class="mb-4">
-                        <Link :href="route('events.signup', { event: props.event.id })" method="post" class="w-full block">
-                            <button class="h-10 w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 font-bold text-lg shadow-lg">
+                <div class="mt-8 border-t pt-6">
+                    <!-- Show feedback if user is already signed up -->
+                    <div v-if="props.isSignedUp" class="mb-4">
+                        <div class="w-full items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-lg font-bold text-white shadow-lg">
+                            ✓ You are already signed up for this event
+                        </div>
+                        <!-- Sign down button - only show if signup end date hasn't passed -->
+                        <div v-if="!props.event.signup_end_date || new Date() <= new Date(props.event.signup_end_date)" class="mt-2">
+                            <Link :href="route('events.remove-signup', { event: props.event.id })" method="delete" class="block w-full">
+                                <button class="h-10 w-full rounded-md bg-red-600 px-4 py-2 text-lg font-bold text-white shadow-lg hover:bg-red-700">
+                                    Cancel my signup
+                                </button>
+                            </Link>
+                        </div>
+                    </div>
+                    <!-- Show signup button if user is not signed up and meets all requirements -->
+                    <div
+                        v-else-if="
+                            !props.event.is_cancelled &&
+                            isSignupOpen(props.event) &&
+                            (isRestrictedToEveryone(props.event) || (userMeetsRoleRequirements(props.event) && userMeetsAgeRequirements(props.event)))
+                        "
+                        class="mb-4"
+                    >
+                        <Link :href="route('events.signup', { event: props.event.id })" method="post" class="block w-full">
+                            <button class="h-10 w-full rounded-md bg-green-600 px-4 py-2 text-lg font-bold text-white shadow-lg hover:bg-green-700">
                                 Signup to event
                             </button>
                         </Link>
                     </div>
-                    <Link :href="route('events.index')" class="w-full block">
-                        <button class="h-10 w-full rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 font-bold text-lg shadow-lg">
+                    <Link :href="route('events.index')" class="block w-full">
+                        <button
+                            class="h-10 w-full rounded-md bg-primary px-4 py-2 text-lg font-bold text-primary-foreground shadow-lg hover:bg-primary/90"
+                        >
                             ← Back to events
                         </button>
                     </Link>

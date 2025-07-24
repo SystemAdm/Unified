@@ -82,8 +82,8 @@ class EventController extends Controller
             abort(404);
         }
 
-        // Load the organizers relationship
-        $event->load(['location', 'users', 'signupped']);
+        // Load the relationships
+        $event->load(['location', 'users', 'signupped', 'attending', 'visited', 'inside']);
 
         // Transform the event to include the location name and user
         $event->location = $event->location ? ['id' => $event->location->id, 'name' => $event->location->name] : null;
@@ -100,8 +100,23 @@ class EventController extends Controller
             $event->available_seats = null; // Unlimited seats
         }
 
+        // Check if current user is already signed up (check all event user relationships)
+        $user = auth()->user();
+        $isSignedUp = false;
+        if ($user) {
+            // Explicitly refresh the signupped relationship to ensure it's up-to-date
+            $event->refresh();
+            $event->load('signupped', 'attending', 'visited', 'inside');
+
+            $isSignedUp = $event->signupped->contains($user->id) ||
+                         $event->attending->contains($user->id) ||
+                         $event->visited->contains($user->id) ||
+                         $event->inside->contains($user->id);
+        }
+
         return Inertia::render('events/Show', [
             'event' => $event,
+            'isSignedUp' => $isSignedUp,
         ]);
     }
 
@@ -167,12 +182,19 @@ class EventController extends Controller
             }
         }
 
-        // Add the user to the signupped list if not already there
-        if (!$event->signupped->contains($user->id)) {
-            $event->signupped()->attach($user->id);
+        // Check if user is already signed up
+        if ($event->signupped->contains($user->id)) {
+            return redirect()->route('events.show', ['event' => $event->id])
+                ->with('message', 'You are already signed up for this event!')
+                ->with('messageType', 'info');
         }
 
-        return redirect()->route('events.show', ['event' => $event->id]);
+        // Add the user to the signupped list
+        $event->signupped()->attach($user->id);
+
+        return redirect()->route('events.show', ['event' => $event->id])
+            ->with('message', 'Successfully signed up for the event!')
+            ->with('messageType', 'success');
     }
 
     /**
@@ -180,10 +202,30 @@ class EventController extends Controller
      */
     public function removeSignup(Event $event)
     {
-        // Remove the user from the signupped list
-        $event->signupped()->detach(auth()->id());
+        // Get the authenticated user
+        $user = auth()->user();
+        if (!$user) {
+            abort(403, 'You must be logged in to cancel your signup.');
+        }
 
-        return redirect()->route('events.show', ['event' => $event->id]);
+        // Check if the signup end date has passed
+        if ($event->signup_end_date && now() > $event->signup_end_date) {
+            abort(403, 'Signup period has ended. You cannot cancel your signup after the signup period has ended.');
+        }
+
+        // Check if user is actually signed up
+        if (!$event->signupped->contains($user->id)) {
+            return redirect()->route('events.show', ['event' => $event->id])
+                ->with('message', 'You are not signed up for this event!')
+                ->with('messageType', 'info');
+        }
+
+        // Remove the user from the signupped list
+        $event->signupped()->detach($user->id);
+
+        return redirect()->route('events.show', ['event' => $event->id])
+            ->with('message', 'Successfully canceled your signup for the event!')
+            ->with('messageType', 'success');
     }
 
     /**

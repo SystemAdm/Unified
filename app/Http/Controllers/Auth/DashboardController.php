@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Game;
 use App\Models\User;
+use App\Models\Banner;
+use App\Models\Announcement;
+use App\Models\News;
 use Inertia\Inertia;
 
 class DashboardController extends Controller
@@ -22,9 +25,40 @@ class DashboardController extends Controller
         // Remove appended attributes from the collection to reduce queries
         $events->each->setAppends([]);
 
+        // Fetch active banners
+        $banners = Banner::where('is_published', true)
+            ->where('from_datetime', '<=', now())
+            ->where('to_datetime', '>=', now())
+            ->orderBy('from_datetime', 'desc')
+            ->limit(5)
+            ->get();
+
+        // Add 'activating' property to each banner for the frontend
+        $banners->each(function ($banner) {
+            $banner->activating = $banner->is_published;
+        });
+
+        // Fetch active announcements
+        $announcements = Announcement::where('activating', true)
+            ->where('from_datetime', '<=', now())
+            ->where('to_datetime', '>=', now())
+            ->orderBy('from_datetime', 'desc')
+            ->limit(10)
+            ->get();
+
+        // Fetch latest published news
+        $news = News::published()
+            ->orderBy('published_at', 'desc')
+            ->orderBy('created_at', 'desc')
+            ->limit(6)
+            ->get();
+
         return Inertia::render('Welcome', [
             'games' => $games,
-            'events' => $events
+            'events' => $events,
+            'banners' => $banners,
+            'announcements' => $announcements,
+            'news' => $news
         ]);
     }
 

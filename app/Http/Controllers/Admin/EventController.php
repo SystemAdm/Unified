@@ -193,10 +193,7 @@ class EventController extends Controller
         $this->authorize(Permission::ADMIN_EVENT->value);
 
         // Load the relationships
-        $event->load(['location', 'users', 'organizations']);
-
-        // Transform the event to include the location name
-        $event->location = $event->location ? $event->location->name : null;
+        $event->load(['location', 'users', 'organizations', 'signupped', 'registered', 'visited', 'inside']);
 
         return Inertia::render('admin/events/Show', [
             'event' => $event,
@@ -215,7 +212,7 @@ class EventController extends Controller
         $organizations = \App\Models\Organization::all();
 
         // Load the event's relationships
-        $event->load(['organizers', 'organizations']);
+        $event->load(['users', 'organizations']);
 
         return Inertia::render('admin/events/Edit', [
             'event' => $event,
@@ -507,5 +504,216 @@ class EventController extends Controller
 
         return redirect()->route('admin.events.show', ['event' => $event->id])
             ->with('success', 'User has been removed from the attending list.');
+    }
+
+    /**
+     * Show registered users for an event.
+     */
+    public function showRegisteredUsers(Event $event)
+    {
+        $this->authorize(Permission::ADMIN_EVENT->value);
+
+        $event->load(['registered']);
+
+        return Inertia::render('admin/events/UserList', [
+            'event' => $event,
+            'users' => $event->registered,
+            'listType' => 'registered',
+            'title' => 'Registered Users'
+        ]);
+    }
+
+    /**
+     * Show visited users for an event (using attending relationship).
+     */
+    public function showVisitedUsers(Event $event)
+    {
+        $this->authorize(Permission::ADMIN_EVENT->value);
+
+        $event->load(['attending']);
+
+        return Inertia::render('admin/events/UserList', [
+            'event' => $event,
+            'users' => $event->attending,
+            'listType' => 'visited',
+            'title' => 'Visited Users'
+        ]);
+    }
+
+    /**
+     * Show inside users for an event (using attending relationship).
+     */
+    public function showInsideUsers(Event $event)
+    {
+        $this->authorize(Permission::ADMIN_EVENT->value);
+
+        $event->load(['attending']);
+
+        return Inertia::render('admin/events/UserList', [
+            'event' => $event,
+            'users' => $event->attending,
+            'listType' => 'inside',
+            'title' => 'Inside Users'
+        ]);
+    }
+
+    /**
+     * Show all user types for an event (signupped, registered, visited, inside).
+     */
+    public function showAllUsers(Event $event)
+    {
+        $this->authorize(Permission::ADMIN_EVENT->value);
+
+        $event->load(['signupped', 'registered', 'visited', 'inside']);
+
+        return Inertia::render('admin/events/AllUsersList', [
+            'event' => $event,
+            'signuppedUsers' => $event->signupped,
+            'registeredUsers' => $event->registered,
+            'visitedUsers' => $event->visited,
+            'insideUsers' => $event->inside,
+            'title' => 'Users'
+        ]);
+    }
+
+    /**
+     * Show the encrypted text validation page.
+     */
+    public function showValidateText(Event $event, Request $request)
+    {
+        $this->authorize(Permission::ADMIN_EVENT->value);
+
+        return Inertia::render('admin/events/ValidateText', [
+            'event' => $event
+        ]);
+    }
+
+    /**
+     * Validate encrypted text.
+     */
+    public function validateText(Event $event, Request $request)
+    {
+        $this->authorize(Permission::ADMIN_EVENT->value);
+
+        $validated = $request->validate([
+            'encrypted_text' => 'required|string',
+        ]);
+
+        try {
+            // First try the new AES-256-GCM encryption method
+            try {
+                // Decode the base64 string
+                $binaryData = base64_decode($validated['encrypted_text']);
+                if ($binaryData === false) {
+                    throw new \Exception('Invalid base64 encoded data');
+                }
+
+                // Extract IV (first 12 bytes)
+                $iv = substr($binaryData, 0, 12);
+
+                // In AES-256-GCM, the authentication tag is 16 bytes and is appended to the ciphertext
+                // The Web Crypto API in JavaScript automatically appends the tag to the ciphertext
+
+                // Web Crypto API combines the ciphertext and tag in a specific way
+                // The tag is appended to the ciphertext, not separated
+                // So we need to extract the ciphertext+tag as a single unit
+                $ciphertext = substr($binaryData, 12);
+
+                // For openssl_decrypt with AES-GCM, we need to provide the tag separately
+                // The tag is the last 16 bytes of the ciphertext
+                $totalLength = strlen($ciphertext);
+                $tagLength = 16; // GCM tag is 16 bytes
+                $tag = substr($ciphertext, $totalLength - $tagLength, $tagLength);
+
+                // The actual ciphertext is everything except the tag
+                $ciphertext = substr($ciphertext, 0, $totalLength - $tagLength);
+
+                // Get the APP_KEY and prepare it for decryption
+                $appKey = config('app.key');
+                // Remove 'base64:' prefix if present
+                $appKey = str_replace('base64:', '', $appKey);
+                // Decode the base64 key
+                $keyBinary = base64_decode($appKey);
+                // Use first 32 bytes for AES-256
+                $key = substr($keyBinary, 0, 32);
+
+                // Decrypt the data using AES-256-GCM with the authentication tag
+                $decryptedData = openssl_decrypt(
+                    $ciphertext,
+                    'aes-256-gcm',
+                    $key,
+                    OPENSSL_RAW_DATA,
+                    $iv,
+                    $tag
+                );
+
+                if ($decryptedData === false) {
+                    throw new \Exception('Decryption failed');
+                }
+
+                // Parse the JSON data
+                $userData = json_decode($decryptedData, true);
+                if ($userData === null) {
+                    throw new \Exception('Invalid JSON data');
+                }
+
+                // Extract the user ID from the decrypted data
+                if (!isset($userData['id'])) {
+                    throw new \Exception('User ID not found in decrypted data');
+                }
+
+                $userId = $userData['id'];
+            } catch (\Exception $e) {
+                // If AES-256-GCM decryption fails, try the old method (simple base64 encoding)
+                $userId = base64_decode($validated['encrypted_text']);
+
+                // Check if the decoded value is a valid user ID
+                if (!is_numeric($userId)) {
+                    throw new \Exception('Failed to decrypt user ID: ' . $e->getMessage());
+                }
+            }
+
+            // Find the user by ID
+            $user = User::find($userId);
+
+            if ($user) {
+                // Get the current registered users
+                $registeredUsers = $event->registered->pluck('id')->toArray();
+
+                // Add the user if not already registered
+                $alreadyRegistered = in_array($user->id, $registeredUsers);
+                if (!$alreadyRegistered) {
+                    $registeredUsers[] = $user->id;
+
+                    // Sync the registered users
+                    $event->registered()->sync($registeredUsers);
+
+                    // Refresh the event model to get the updated relationships
+                    $event->refresh();
+
+                    return response()->json([
+                        'success' => true,
+                        'message' => "User validated successfully and registered for the event: {$user->given_name} {$user->family_name}",
+                        'user' => $user
+                    ]);
+                } else {
+                    return response()->json([
+                        'success' => true,
+                        'message' => "User validated successfully (already registered for the event): {$user->given_name} {$user->family_name}",
+                        'user' => $user
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No user found for the provided encrypted text.'
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid encrypted text format: ' . $e->getMessage()
+            ]);
+        }
     }
 }

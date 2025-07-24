@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar Responsive Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .test-container {
+            border: 2px solid #ccc;
+            margin: 20px;
+            padding: 20px;
+            resize: horizontal;
+            overflow: auto;
+            min-width: 300px;
+            max-width: 1200px;
+            width: 800px;
+        }
+        .width-display {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #333;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .sidebar-test {
+            display: flex;
+            height: 400px;
+            border: 1px solid #ddd;
+        }
+        .sidebar {
+            width: 256px; /* 16rem */
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            background: white;
+        }
+        .mobile-trigger {
+            display: none;
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive behavior similar to the Vue components */
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .mobile-trigger {
+                display: block;
+            }
+        }
+
+        /* Test the problematic 760px range */
+        @media (max-width: 760px) {
+            .content {
+                background: #ffe6e6; /* Light red to indicate 760px range */
+            }
+        }
+
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 288px; /* 18rem mobile width */
+            height: 100%;
+            background: #f5f5f5;
+            transition: left 0.3s ease;
+            z-index: 1000;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+
+        .mobile-sidebar.open {
+            left: 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="width-display" id="widthDisplay">Width: <span id="currentWidth"></span>px</div>
+
+    <h1>Sidebar Responsive Test</h1>
+    <p>Resize the container below to test sidebar behavior at different widths. Pay attention to the 760px-768px range.</p>
+    <p><strong>Expected behavior:</strong></p>
+    <ul>
+        <li>Above 768px: Desktop sidebar visible</li>
+        <li>Below 768px: Mobile trigger button visible, sidebar hidden</li>
+        <li>At 760px: Should show mobile trigger (background turns light red)</li>
+    </ul>
+
+    <div class="test-container" id="testContainer">
+        <div class="sidebar-test">
+            <div class="sidebar">
+                <h3>Desktop Sidebar</h3>
+                <ul>
+                    <li>Dashboard</li>
+                    <li>Events</li>
+                    <li>Locations</li>
+                    <li>Organizations</li>
+                </ul>
+            </div>
+            <div class="content">
+                <button class="mobile-trigger" onclick="toggleMobileSidebar()">☰ Menu</button>
+                <h3>Main Content</h3>
+                <p>Container width: <span id="containerWidth"></span>px</p>
+                <p>This area represents the main dashboard content.</p>
+                <p>If background is light red, you're in the 760px range where the issue occurs.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeMobileSidebar()"></div>
+    <div class="mobile-sidebar" id="mobileSidebar">
+        <h3>Mobile Sidebar</h3>
+        <button onclick="closeMobileSidebar()" style="float: right;">✕</button>
+        <ul>
+            <li>Dashboard</li>
+            <li>Events</li>
+            <li>Locations</li>
+            <li>Organizations</li>
+        </ul>
+    </div>
+
+    <script>
+        function updateWidth() {
+            const container = document.getElementById('testContainer');
+            const width = container.offsetWidth;
+            document.getElementById('containerWidth').textContent = width;
+            document.getElementById('currentWidth').textContent = window.innerWidth;
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('show');
+        }
+
+        function closeMobileSidebar() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const overlay = document.getElementById('overlay');
+            sidebar.classList.remove('open');
+            overlay.classList.remove('show');
+        }
+
+        // Update width on resize
+        window.addEventListener('resize', updateWidth);
+        new ResizeObserver(updateWidth).observe(document.getElementById('testContainer'));
+
+        // Initial update
+        updateWidth();
+    </script>
+</body>
+</html>

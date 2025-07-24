@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Event extends Model
 {
-    use \Illuminate\Database\Eloquent\Factories\HasFactory;
+    use HasFactory;
 
     /**
      * The attributes that are mass assignable.
@@ -79,6 +80,15 @@ class Event extends Model
     }
 
     /**
+     * Get the users who are organizers of the event.
+     */
+    public function organizers()
+    {
+        return $this->belongsToMany(User::class, 'event_user')
+            ->withTimestamps();
+    }
+
+    /**
      * Get the users who have signed up for the event.
      */
     public function signupped()
@@ -102,6 +112,24 @@ class Event extends Model
     public function attending()
     {
         return $this->belongsToMany(User::class, 'event_attending_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the users who have visited the event.
+     */
+    public function visited()
+    {
+        return $this->belongsToMany(User::class, 'event_visited_user')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the users who are inside the event.
+     */
+    public function inside()
+    {
+        return $this->belongsToMany(User::class, 'event_inside_user')
             ->withTimestamps();
     }
 

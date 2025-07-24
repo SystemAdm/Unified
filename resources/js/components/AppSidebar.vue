@@ -14,8 +14,11 @@ import {
     Lock,
     Mail,
     MapPin,
+    Megaphone,
+    Newspaper,
     Phone,
     ShieldCheck,
+    Speaker,
     UserCog,
     Users
 } from 'lucide-vue-next';
@@ -110,6 +113,21 @@ const mainNavItems = computed(() => {
             },
             {
                 title:'Games', href: route('admin.games.index'), icon: GamepadIcon,
+            },
+            {
+                title: 'Banners',
+                href: route('admin.banners.index'),
+                icon: Speaker,
+            },
+            {
+                title: 'Announcements',
+                href: route('admin.announcements.index'),
+                icon: Megaphone,
+            },
+            {
+                title: 'News',
+                href: route('admin.news.index'),
+                icon: Newspaper,
             }
         );
     }
@@ -137,7 +155,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="route('dashboard')">
+                        <Link :href="route('home')">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>

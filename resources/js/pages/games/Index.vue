@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import Layout from '@/layouts/app/AppSidebarLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Search } from 'lucide-vue-next'
+import { Search, Settings } from 'lucide-vue-next'
 import type { BreadcrumbItem } from '@/types';
+import { computed } from 'vue'
 
 interface Game {
   id: number
@@ -18,6 +19,15 @@ interface Game {
   image: string | null
   is_active: boolean
 }
+
+const page = usePage()
+const user = computed(() => page.props.auth?.user || null)
+const userRoles = computed(() => user.value?.roles || [])
+
+// Check if user has admin privileges (ADMIN, MODERATOR, or OWNER role)
+const isAdmin = computed(() => {
+  return userRoles.value.some((role) => ['admin', 'moderator', 'owner'].includes(role))
+})
 
 defineProps<{
   games: Game[]
@@ -62,7 +72,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="Games Library" />
 
     <div class="container mx-auto px-4 py-8">
-      <h1 class="text-3xl font-bold mb-8">Games Library</h1>
+      <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold">Games Library</h1>
+        <div v-if="isAdmin">
+          <Link :href="route('admin.games.index')" class="inline-flex items-center">
+            <Button variant="outline" class="gap-2">
+              <Settings class="h-4 w-4" />
+              Manage Games
+            </Button>
+          </Link>
+        </div>
+      </div>
 
       <!-- Filters -->
       <Card class="mb-8">

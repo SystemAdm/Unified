@@ -26,7 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 // Icons
-import { Calendar, ShoppingCart, Info, Users, Heart, Mail, DollarSign, MapPin as MapPinIcon,LogInIcon,ClipboardPenLineIcon
+import { Calendar, ShoppingCart, Info, Users, Heart, Mail, DollarSign, MapPin as MapPinIcon, LogInIcon, ClipboardPenLineIcon, Bell, Megaphone, Newspaper
 
 } from 'lucide-vue-next';
 
@@ -53,6 +53,38 @@ defineProps<{
             name: string;
             address: string;
         } | null;
+    }[];
+    banners: {
+        id: number;
+        title: string;
+        description: string;
+        type: string;
+        from_datetime: string;
+        to_datetime: string;
+        link_norwegian: string | null;
+        link_english: string | null;
+        activating: boolean;
+    }[];
+    announcements: {
+        id: number;
+        title: string;
+        description: string;
+        type: string;
+        from_datetime: string;
+        to_datetime: string;
+        activating: boolean;
+    }[];
+    news: {
+        id: number;
+        title: string;
+        excerpt: string | null;
+        content: string;
+        author: string | null;
+        featured_image: string | null;
+        published_at: string | null;
+        is_published: boolean;
+        created_at: string;
+        updated_at: string;
     }[];
 }>();
 
@@ -137,6 +169,41 @@ const membershipTiers = ref([
     <div class="min-h-screen bg-background text-foreground">
         <Head title="Gaming Hub - Home" />
 
+        <!-- Scrolling Banner Section -->
+        <section v-if="banners.length > 0" class="overflow-hidden bg-primary/10 py-2 relative">
+            <div class="scrolling-banner-container">
+                <div class="scrolling-banner">
+                    <div v-for="banner in banners" :key="banner.id" class="scrolling-banner-item px-4 py-1 mx-2 rounded-md" :class="{
+                        'bg-yellow-50 border-yellow-200 dark:bg-yellow-900/20 dark:border-yellow-800': banner.type === 'warning',
+                        'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800': banner.type === 'danger',
+                        'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800': banner.type === 'info',
+                        'bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800': banner.type === 'primary',
+                        'bg-gray-50 border-gray-200 dark:bg-gray-900/20 dark:border-gray-800': banner.type === 'secondary' || banner.type === 'default'
+                    }">
+                        <div class="flex items-center space-x-2">
+                            <Bell class="h-4 w-4 flex-shrink-0" :class="{
+                                'text-yellow-600 dark:text-yellow-400': banner.type === 'warning',
+                                'text-red-600 dark:text-red-400': banner.type === 'danger',
+                                'text-blue-600 dark:text-blue-400': banner.type === 'info',
+                                'text-green-600 dark:text-green-400': banner.type === 'primary',
+                                'text-gray-600 dark:text-gray-400': banner.type === 'secondary' || banner.type === 'default'
+                            }" />
+                            <span class="font-medium">{{ banner.title }}:</span>
+                            <span>{{ banner.description }}</span>
+                            <div v-if="banner.link_norwegian || banner.link_english" class="ml-2">
+                                <a v-if="banner.link_norwegian" :href="banner.link_norwegian" target="_blank" class="text-primary hover:underline mr-2">
+                                    Les mer (NO)
+                                </a>
+                                <a v-if="banner.link_english" :href="banner.link_english" target="_blank" class="text-primary hover:underline">
+                                    Read more (EN)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Hero Section -->
         <section class="relative flex h-[70vh] items-center justify-center overflow-hidden">
             <div class="absolute inset-0 z-10 bg-gradient-to-r from-background/90 to-muted/90"></div>
@@ -199,6 +266,50 @@ const membershipTiers = ref([
             </div>
         </section>
 
+        <!-- Announcements Section -->
+        <section v-if="announcements.length > 0" class="bg-background py-16">
+            <div class="container mx-auto px-4">
+                <div class="mb-10 flex items-center">
+                    <Megaphone class="mr-3 h-8 w-8 text-muted-foreground" />
+                    <h2 class="text-3xl font-bold">Announcements</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <Card v-for="announcement in announcements" :key="announcement.id" class="overflow-hidden">
+                        <CardHeader>
+                            <div class="flex items-center justify-between">
+                                <CardTitle class="text-lg">{{ announcement.title }}</CardTitle>
+                                <Badge :variant="announcement.type === 'warning' ? 'destructive' :
+                                               announcement.type === 'danger' ? 'destructive' :
+                                               announcement.type === 'info' ? 'secondary' :
+                                               announcement.type === 'primary' ? 'default' : 'outline'">
+                                    {{ announcement.type.toUpperCase() }}
+                                </Badge>
+                            </div>
+                            <CardDescription>
+                                {{ formatEventDate(announcement.from_datetime) }}
+                                <span v-if="announcement.to_datetime !== announcement.from_datetime">
+                                    - {{ formatEventDate(announcement.to_datetime) }}
+                                </span>
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p class="text-muted-foreground">{{ announcement.description.substring(0, 150) + (announcement.description.length > 150 ? '...' : '') }}</p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link :href="route('announcements.show', { announcement: announcement.id })">
+                                <Button class="w-full">Read More</Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                </div>
+                <div class="mt-10 text-center">
+                    <Link :href="route('announcements.index')">
+                        <Button variant="outline">View All Announcements</Button>
+                    </Link>
+                </div>
+            </div>
+        </section>
+
         <!-- Games Section -->
         <section class="bg-background py-16">
             <div class="container mx-auto px-4">
@@ -225,7 +336,9 @@ const membershipTiers = ref([
                             <Badge>{{ game.console }}</Badge>
                         </CardHeader>
                         <CardFooter>
-                            <Button class="w-full">View Details</Button>
+                            <Link :href="route('games.show', { game: game.id })" class="w-full">
+                                <Button class="w-full">View Details</Button>
+                            </Link>
                         </CardFooter>
                     </Card>
                 </div>
@@ -258,6 +371,49 @@ const membershipTiers = ref([
                             <Button class="w-full">Learn More</Button>
                         </CardFooter>
                     </Card>
+                </div>
+            </div>
+        </section>
+
+        <!-- News Section -->
+        <section v-if="news.length > 0" class="bg-background py-16">
+            <div class="container mx-auto px-4">
+                <div class="mb-10 flex items-center">
+                    <Newspaper class="mr-3 h-8 w-8 text-muted-foreground" />
+                    <h2 class="text-3xl font-bold">Latest News</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <Card v-for="article in news" :key="article.id" class="overflow-hidden">
+                        <img
+                            :src="article.featured_image
+                                ? `/storage/${article.featured_image}`
+                                : `https://placehold.co/400x200/0f0f0f/ffffff?text=${encodeURIComponent(article.title)}`"
+                            :alt="article.title"
+                            class="h-48 w-full object-cover"
+                        />
+                        <CardHeader>
+                            <CardTitle class="text-lg">{{ article.title }}</CardTitle>
+                            <CardDescription>
+                                <span v-if="article.author">By {{ article.author }} • </span>
+                                {{ article.published_at ? formatEventDate(article.published_at) : formatEventDate(article.created_at) }}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p class="text-muted-foreground">
+                                {{ article.excerpt || article.content.substring(0, 150) + '...' }}
+                            </p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link :href="route('news.show', { news: article.id })">
+                                <Button class="w-full">Read More</Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                </div>
+                <div class="mt-10 text-center">
+                    <Link :href="route('news.index')">
+                        <Button variant="outline">View All News</Button>
+                    </Link>
                 </div>
             </div>
         </section>
@@ -589,4 +745,49 @@ const membershipTiers = ref([
 
 <style scoped>
 /* Additional custom styles can be added here */
+
+/* Scrolling Banner Styles */
+.scrolling-banner-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrolling-banner {
+  display: flex;
+  white-space: nowrap;
+  animation: scrollBanner 30s linear infinite;
+}
+
+.scrolling-banner-item {
+  display: inline-flex;
+  border: 1px solid;
+  align-items: center;
+  flex-shrink: 0; /* Prevent items from shrinking */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .scrolling-banner {
+    animation-duration: 20s; /* Faster on mobile */
+  }
+
+  .scrolling-banner-item {
+    font-size: 0.875rem; /* Smaller font on mobile */
+  }
+}
+
+@keyframes scrollBanner {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Pause animation on hover */
+.scrolling-banner:hover {
+  animation-play-state: paused;
+}
 </style>

@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import Layout from '@/layouts/app/AppSidebarLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link, router, usePage } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Settings } from 'lucide-vue-next'
 import type { BreadcrumbItem } from '@/types';
+import { computed } from 'vue'
+
+const page = usePage()
+const user = computed(() => page.props.auth?.user || null)
+const userRoles = computed(() => user.value?.roles || [])
+
+// Check if user has admin privileges (ADMIN, MODERATOR, or OWNER role)
+const isAdmin = computed(() => {
+  return userRoles.value.some((role) => ['admin', 'moderator', 'owner'].includes(role))
+});
 
 interface Game {
   id: number
@@ -38,9 +49,19 @@ const breadcrumbs: BreadcrumbItem[] = [
 
     <div class="container mx-auto px-4 py-8">
       <div class="mb-6">
-        <Link :href="`/games`" class="text-primary hover:underline mb-4 inline-block" as="button">
-          &larr; Back to Games Library
-        </Link>
+        <div class="flex justify-between items-center">
+          <Link :href="`/games`" class="text-primary hover:underline mb-4 inline-block" as="button">
+            &larr; Back to Games Library
+          </Link>
+          <div v-if="isAdmin">
+            <Link :href="route('admin.games.show', game.id)" class="inline-flex items-center">
+              <Button variant="outline" class="gap-2">
+                <Settings class="h-4 w-4" />
+                Manage Game
+              </Button>
+            </Link>
+          </div>
+        </div>
         <h1 class="text-3xl font-bold mt-2">{{ game.name }}</h1>
       </div>
 

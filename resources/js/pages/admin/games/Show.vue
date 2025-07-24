@@ -5,7 +5,7 @@ import { BreadcrumbItem } from '@/types';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PencilIcon,ArrowLeftIcon } from 'lucide-vue-next';
+import { PencilIcon, ArrowLeftIcon, ExternalLinkIcon } from 'lucide-vue-next';
 
 interface Game {
     id: number;
@@ -37,6 +37,11 @@ const breadcrumbs: BreadcrumbItem[] = [
             <div class="flex items-center justify-between">
                 <HeadingSmall :title="game.name" description="Game Details" />
                 <div class="flex space-x-2">
+                    <Link v-if="game.is_active" :href="`/games/${game.id}`">
+                        <Button variant="outline" size="sm" class="gap-2">
+                            <ExternalLinkIcon class="h-4 w-4" /> View Public Page
+                        </Button>
+                    </Link>
                     <Link :href="route('admin.games.edit', { game: game.id })">
                         <Button variant="outline" size="sm">
                             <PencilIcon class="h-4 w-4" /> Edit game

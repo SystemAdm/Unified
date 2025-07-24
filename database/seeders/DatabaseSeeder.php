@@ -107,5 +107,9 @@ class DatabaseSeeder extends Seeder
         $oddUser->refresh();
 
         $this->call(EventSeeder::class);
+        $this->call(BannerSeeder::class);
+        $this->call(AnnouncementSeeder::class);
+        $this->call(NewsSeeder::class);
+        $this->call(GameSeeder::class);
     }
 }

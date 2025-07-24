@@ -20,5 +20,6 @@ class Game extends Model
         'version',
         'console',
         'is_active',
+        'image',
     ];
 }

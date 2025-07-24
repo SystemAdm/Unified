@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storage Access Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        img {
+            max-width: 300px;
+            max-height: 200px;
+            display: block;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>Storage Access Test</h1>
+
+    <h2>Test Direct Access to Storage Directory</h2>
+    <div class="result" id="directAccessResult">
+        <p>Testing direct access to /storage/news/...</p>
+        <div id="directAccessStatus">Loading...</div>
+    </div>
+
+    <h2>Test Image Loading</h2>
+    <div class="result">
+        <p>Testing image loading from storage:</p>
+        <img src="/storage/news/4EWPQDydTCBR22wNWUdasX5jnMrAhImnJZSJkxdH.png" alt="Test Image" id="testImage">
+        <div id="imageStatus">Loading image...</div>
+    </div>
+
+    <script>
+        // Test direct access to storage directory
+        fetch('/storage/news/')
+            .then(response => {
+                const statusElement = document.getElementById('directAccessStatus');
+                if (response.ok) {
+                    statusElement.innerHTML = `<p class="success">Success! Status: ${response.status}</p>`;
+                } else {
+                    statusElement.innerHTML = `<p class="error">Error! Status: ${response.status} (${response.statusText})</p>`;
+                }
+                return response.text();
+            })
+            .then(text => {
+                const statusElement = document.getElementById('directAccessStatus');
+                statusElement.innerHTML += `<p>Response content (first 100 chars): ${text.substring(0, 100)}...</p>`;
+            })
+            .catch(error => {
+                const statusElement = document.getElementById('directAccessStatus');
+                statusElement.innerHTML = `<p class="error">Fetch error: ${error.message}</p>`;
+            });
+
+        // Test image loading
+        const testImage = document.getElementById('testImage');
+        const imageStatus = document.getElementById('imageStatus');
+
+        testImage.onload = function() {
+            imageStatus.innerHTML = `<p class="success">Image loaded successfully!</p>`;
+        };
+
+        testImage.onerror = function() {
+            imageStatus.innerHTML = `<p class="error">Failed to load image!</p>`;
+        };
+    </script>
+</body>
+</html>
