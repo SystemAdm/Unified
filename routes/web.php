@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\Auth\DashboardController;
+use App\Http\Controllers\ConsoleController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GameController;
@@ -68,6 +69,11 @@ Route::prefix('locations')->name('locations.')->group(function () {
 Route::prefix('organizations')->name('organizations.')->group(function () {
     Route::get('/', [OrganizationController::class, 'index'])->name('index');
     Route::get('/{organization}', [OrganizationController::class, 'show'])->name('show');
+});
+
+// Console routes
+Route::prefix('consoles')->name('consoles.')->group(function () {
+    Route::get('/', [ConsoleController::class, 'index'])->name('index');
 });
 
 // Contact form route

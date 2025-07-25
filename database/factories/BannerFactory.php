@@ -30,10 +30,6 @@ class BannerFactory extends Factory
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(3),
             'type' => fake()->randomElement(AnnouncementType::cases())->value,
-            'visible_to_access' => fake()->boolean(30) ? fake()->randomElements(
-                array_map(fn($case) => $case->value, Access::cases()),
-                fake()->numberBetween(1, 3)
-            ) : null,
             'visible_to_role' => fake()->boolean(30) ? fake()->randomElements(
                 array_map(fn($case) => $case->value, Role::cases()),
                 fake()->numberBetween(1, 3)

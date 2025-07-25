@@ -164,12 +164,14 @@ const userMeetsAgeRequirements = (event: Event) => {
 
                         <div class="mb-2 flex items-center text-muted-foreground">
                             <CalendarIcon class="mr-2 h-4 w-4" />
-                            <span>Event Start: {{ formatEventDate(props.event.start_date) }}</span>
+                            <span class="mr-2">Event Start:</span>
+                            <strong class="text-white">{{ formatEventDate(props.event.start_date) }}</strong>
                         </div>
 
                         <div class="mb-2 flex items-center text-muted-foreground">
                             <CalendarIcon class="mr-2 h-4 w-4" />
-                            <span>Event End: {{ formatEventDate(props.event.end_date) }}</span>
+                            <span class="mr-2">Event End:</span>
+                            <strong class="text-white">{{ formatEventDate(props.event.end_date) }}</strong>
                         </div>
 
                         <!-- Event Duration -->

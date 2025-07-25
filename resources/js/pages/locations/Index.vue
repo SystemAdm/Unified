@@ -97,7 +97,7 @@ const decodeHtmlEntities = (html: string) => {
                                     <!-- Previous link -->
                                     <PaginationPrevious
                                         v-if="link.label === '&laquo; Previous'"
-                                        :href="link.url"
+                                        :href="link.url || '#'"
                                     />
 
                                     <!-- Page numbers -->
@@ -105,7 +105,7 @@ const decodeHtmlEntities = (html: string) => {
                                         v-else-if="!isNaN(parseInt(decodeHtmlEntities(link.label)))"
                                         :value="parseInt(decodeHtmlEntities(link.label))"
                                         :is-active="link.active"
-                                        :href="link.url"
+                                        :href="link.url || '#'"
                                     >
                                         {{ decodeHtmlEntities(link.label) }}
                                     </PaginationItem>
@@ -113,7 +113,7 @@ const decodeHtmlEntities = (html: string) => {
                                     <!-- Next link -->
                                     <PaginationNext
                                         v-else-if="link.label === 'Next &raquo;'"
-                                        :href="link.url"
+                                        :href="link.url || '#'"
                                     />
 
                                     <!-- Ellipsis -->

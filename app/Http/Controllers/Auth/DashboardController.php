@@ -21,7 +21,7 @@ class DashboardController extends Controller
         $games = Game::where('is_active', true)->orderBy('updated_at')->limit(4)->get();
 
         // Disable appended attributes for the welcome page to reduce queries
-        $events = Event::published()->upcoming()->with(['location'])->take(3)->get();
+        $events = Event::published()->upcoming()->where('is_cancelled', false)->orderBy('start_date', 'asc')->with(['location'])->take(3)->get();
         // Remove appended attributes from the collection to reduce queries
         $events->each->setAppends([]);
 
@@ -46,8 +46,10 @@ class DashboardController extends Controller
             ->limit(10)
             ->get();
 
-        // Fetch latest published news
-        $news = News::published()
+        // Fetch latest published news where published date has passed
+        $news = News::where('is_published', true)
+            ->whereNotNull('published_at')
+            ->where('published_at', '<=', now())
             ->orderBy('published_at', 'desc')
             ->orderBy('created_at', 'desc')
             ->limit(6)

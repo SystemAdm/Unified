@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\BannerController;
+use App\Http\Controllers\Admin\ConsoleController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\GameController;
@@ -23,6 +24,9 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     })->name('index');
 
     Route::resource('games', GameController::class);
+
+    // Console management routes
+    Route::resource('consoles', ConsoleController::class);
 
     // Banner management routes
     Route::resource('banners', BannerController::class);

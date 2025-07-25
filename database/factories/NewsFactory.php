@@ -25,12 +25,8 @@ class NewsFactory extends Factory
             'title' => fake()->sentence(6),
             'excerpt' => fake()->boolean(80) ? fake()->paragraph(2) : null,
             'content' => fake()->paragraphs(fake()->numberBetween(3, 8), true),
-            'author' => fake()->boolean(70) ? fake()->name() : null,
+            'author_id' => fake()->boolean(70) ? 1 : null, // Default to user ID 1 or null
             'featured_image' => fake()->boolean(60) ? 'news/4EWPQDydTCBR22wNWUdasX5jnMrAhImnJZSJkxdH.png' : null,
-            'visible_to_access' => fake()->boolean(20) ? fake()->randomElements(
-                array_map(fn($case) => $case->value, Access::cases()),
-                fake()->numberBetween(1, 3)
-            ) : null,
             'visible_to_role' => fake()->boolean(20) ? fake()->randomElements(
                 array_map(fn($case) => $case->value, Role::cases()),
                 fake()->numberBetween(1, 3)
@@ -94,10 +90,10 @@ class NewsFactory extends Factory
     /**
      * Indicate that the news should have an author.
      */
-    public function withAuthor(string $author = null): static
+    public function withAuthor(int $authorId = 1): static
     {
         return $this->state(fn (array $attributes) => [
-            'author' => $author ?? fake()->name(),
+            'author_id' => $authorId,
         ]);
     }
 
@@ -107,7 +103,7 @@ class NewsFactory extends Factory
     public function withoutAuthor(): static
     {
         return $this->state(fn (array $attributes) => [
-            'author' => null,
+            'author_id' => null,
         ]);
     }
 

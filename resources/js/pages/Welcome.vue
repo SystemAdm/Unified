@@ -24,10 +24,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import EventCard from '@/components/EventCard.vue';
 
 // Icons
-import { Calendar, ShoppingCart, Info, Users, Heart, Mail, DollarSign, MapPin as MapPinIcon, LogInIcon, ClipboardPenLineIcon, Bell, Megaphone, Newspaper
-
+import { Calendar, Info, Users, Heart, Mail, DollarSign, LogInIcon, ClipboardPenLineIcon, Bell, Megaphone, Newspaper
 } from 'lucide-vue-next';
 
 // Define props
@@ -98,15 +98,6 @@ const formatEventDate = (date: string) => {
     });
 };
 
-// Format time for display
-const formatEventTime = (date: string) => {
-    const eventDate = new Date(date);
-    return eventDate.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-    });
-};
 
 // Contact form
 const form = useForm({
@@ -126,32 +117,6 @@ const formStatus = reactive({
 onMounted(() => {});
 
 const submitContactForm = () => {};
-// Mock data for gaming consoles
-const gamingConsoles = ref([
-    {
-        id: 1,
-        name: 'PlayStation 5',
-        description:
-            'Experience lightning-fast loading with an ultra-high speed SSD, deeper immersion with support for haptic feedback, adaptive triggers, and 3D Audio.',
-        price: '$499.99',
-        image: 'https://placehold.co/400x200/0f0f0f/ffffff?text=PS5',
-    },
-    {
-        id: 2,
-        name: 'Xbox Series X',
-        description:
-            'The most powerful Xbox ever, designed for a console generation that has you at its center with 12 teraflops of processing power.',
-        price: '$499.99',
-        image: 'https://placehold.co/400x200/0f0f0f/ffffff?text=Xbox',
-    },
-    {
-        id: 3,
-        name: 'Nintendo Switch',
-        description: 'The Nintendo Switch is designed to fit your life, transforming from home console to portable system in a snap.',
-        price: '$299.99',
-        image: 'https://placehold.co/400x200/0f0f0f/ffffff?text=Switch',
-    },
-]);
 
 // Membership tiers
 // Note: we only have one membership tier
@@ -221,9 +186,60 @@ const membershipTiers = ref([
                             Join our Discord Community
                         </Button>
                     </a>
+                    <Link :href="route('games.index')">
+                        <Button size="lg" variant="outline">Browse Games</Button>
+                    </Link>
+                    <Link :href="route('consoles.index')">
+                        <Button size="lg" variant="outline">Browse Consoles</Button>
+                    </Link>
                 </div>
             </div>
         </section>
+
+        <!-- Latest News Section -->
+        <section v-if="news.length > 0" class="bg-background py-16">
+            <div class="container mx-auto px-4">
+                <div class="mb-10 flex items-center">
+                    <Newspaper class="mr-3 h-8 w-8 text-muted-foreground" />
+                    <h2 class="text-3xl font-bold">Latest News</h2>
+                </div>
+                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    <Card v-for="article in news" :key="article.id" class="overflow-hidden">
+                        <img
+                            :src="article.featured_image
+                                ? `/storage/${article.featured_image}`
+                                : `https://placehold.co/400x200/0f0f0f/ffffff?text=${encodeURIComponent(article.title)}`"
+                            :alt="article.title"
+                            class="h-48 w-full object-cover"
+                        />
+                        <CardHeader>
+                            <CardTitle class="text-lg">{{ article.title }}</CardTitle>
+                            <CardDescription>
+                                <span v-if="article.author">By {{ article.author }} • </span>
+                                {{ article.published_at ? formatEventDate(article.published_at) : formatEventDate(article.created_at) }}
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <p class="text-muted-foreground">
+                                {{ article.excerpt || article.content.substring(0, 150) + '...' }}
+                            </p>
+                        </CardContent>
+                        <CardFooter>
+                            <Link :href="route('news.show', { news: article.id })">
+                                <Button class="w-full">Read More</Button>
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                </div>
+                <div class="mt-10 text-center">
+                    <Link :href="route('news.index')">
+                        <Button variant="outline">View All News</Button>
+                    </Link>
+                </div>
+            </div>
+        </section>
+
+
 
         <!-- Upcoming Events Section -->
         <section class="bg-muted py-16">
@@ -234,33 +250,16 @@ const membershipTiers = ref([
                 </div>
                 <div v-if="events.length === 0" class="p-4 text-center text-gray-500">No upcoming events found.</div>
                 <div v-else class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    <Card v-for="event in events" :key="event.id" class="overflow-hidden">
-                        <img
-                            :src="`https://placehold.co/300x200/0f0f0f/ffffff?text=${encodeURIComponent(event.title)}`"
-                            :alt="event.title"
-                            class="h-48 w-full object-cover"
-                        />
-                        <CardHeader>
-                            <CardTitle>{{ event.title }}</CardTitle>
-                            <CardDescription> {{ formatEventDate(event.start_date) }} at {{ formatEventTime(event.start_date) }} </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div v-if="event.location" class="mb-2 flex items-center text-gray-500 dark:text-gray-400">
-                                <MapPinIcon class="mr-2 h-4 w-4" />
-                                <span>{{ event.location.name }}</span>
-                            </div>
-                            <p class="text-muted-foreground">{{ event.description }}</p>
-                        </CardContent>
-                        <CardFooter>
-                            <Link :href="route('events.show', { event: event.id })" class="w-full">
-                                <Button class="w-full">View Details</Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
+                    <EventCard
+                        v-for="event in events"
+                        :key="event.id"
+                        :event="event"
+                        :showDetailedView="false"
+                    />
                 </div>
                 <div class="mt-10 text-center">
                     <Link :href="route('events.index')">
-                        <Button variant="outline"> View All Events </Button>
+                        <Button variant="secondary"> View All Events </Button>
                     </Link>
                 </div>
             </div>
@@ -305,114 +304,6 @@ const membershipTiers = ref([
                 <div class="mt-10 text-center">
                     <Link :href="route('announcements.index')">
                         <Button variant="outline">View All Announcements</Button>
-                    </Link>
-                </div>
-            </div>
-        </section>
-
-        <!-- Games Section -->
-        <section class="bg-background py-16">
-            <div class="container mx-auto px-4">
-                <div class="mb-10 flex items-center">
-                    <ShoppingCart class="mr-3 h-8 w-8 text-muted-foreground" />
-                    <h2 class="text-3xl font-bold">Our Games</h2>
-                </div>
-                <div class="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
-                    <Card v-for="game in games" :key="game.id">
-                        <img
-                            :src="
-                                game.image
-                                    ? `/storage/${game.image}`
-                                    : `https://placehold.co/200x300/0f0f0f/ffffff?text=${encodeURIComponent(game.name)}`
-                            "
-                            :alt="game.name"
-                            class="h-64 w-full object-cover"
-                        />
-                        <CardHeader>
-                            <div class="flex items-center justify-between">
-                                <CardTitle class="text-lg">{{ game.name }}</CardTitle>
-                                <Badge class="font-semibold" v-if="game.version">ver.: {{ game.version }}</Badge>
-                            </div>
-                            <Badge>{{ game.console }}</Badge>
-                        </CardHeader>
-                        <CardFooter>
-                            <Link :href="route('games.show', { game: game.id })" class="w-full">
-                                <Button class="w-full">View Details</Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
-                </div>
-            </div>
-            <div class="mt-10 flex justify-center">
-                <Link href="/games">Show more...</Link>
-            </div>
-        </section>
-
-        <!-- Gaming Consoles Section -->
-        <section class="bg-muted py-16">
-            <div class="container mx-auto px-4">
-                <div class="mb-10 flex items-center">
-                    <ShoppingCart class="mr-3 h-8 w-8 text-muted-foreground" />
-                    <h2 class="text-3xl font-bold">Gaming Consoles</h2>
-                </div>
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    <Card v-for="console in gamingConsoles" :key="console.id">
-                        <img :src="console.image" :alt="console.name" class="h-48 w-full object-cover" />
-                        <CardHeader>
-                            <CardTitle>{{ console.name }}</CardTitle>
-                            <CardDescription class="font-semibold">
-                                {{ console.price }}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-muted-foreground">{{ console.description }}</p>
-                        </CardContent>
-                        <CardFooter>
-                            <Button class="w-full">Learn More</Button>
-                        </CardFooter>
-                    </Card>
-                </div>
-            </div>
-        </section>
-
-        <!-- News Section -->
-        <section v-if="news.length > 0" class="bg-background py-16">
-            <div class="container mx-auto px-4">
-                <div class="mb-10 flex items-center">
-                    <Newspaper class="mr-3 h-8 w-8 text-muted-foreground" />
-                    <h2 class="text-3xl font-bold">Latest News</h2>
-                </div>
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    <Card v-for="article in news" :key="article.id" class="overflow-hidden">
-                        <img
-                            :src="article.featured_image
-                                ? `/storage/${article.featured_image}`
-                                : `https://placehold.co/400x200/0f0f0f/ffffff?text=${encodeURIComponent(article.title)}`"
-                            :alt="article.title"
-                            class="h-48 w-full object-cover"
-                        />
-                        <CardHeader>
-                            <CardTitle class="text-lg">{{ article.title }}</CardTitle>
-                            <CardDescription>
-                                <span v-if="article.author">By {{ article.author }} • </span>
-                                {{ article.published_at ? formatEventDate(article.published_at) : formatEventDate(article.created_at) }}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-muted-foreground">
-                                {{ article.excerpt || article.content.substring(0, 150) + '...' }}
-                            </p>
-                        </CardContent>
-                        <CardFooter>
-                            <Link :href="route('news.show', { news: article.id })">
-                                <Button class="w-full">Read More</Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
-                </div>
-                <div class="mt-10 text-center">
-                    <Link :href="route('news.index')">
-                        <Button variant="outline">View All News</Button>
                     </Link>
                 </div>
             </div>
@@ -475,7 +366,9 @@ const membershipTiers = ref([
                             Our mission is to provide a welcoming space for gamers to share experiences, improve their skills, and form lasting
                             friendships. We believe that gaming is more than just a hobby—it's a way to connect, learn, and grow together.
                         </p>
-                        <Button>Learn More About Us</Button>
+                        <div class="flex flex-wrap gap-4">
+                            <Button>Learn More About Us</Button>
+                        </div>
                     </div>
                 </div>
             </div>

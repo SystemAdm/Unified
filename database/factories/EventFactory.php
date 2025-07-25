@@ -34,7 +34,7 @@ class EventFactory extends Factory
         }
 
         // Cancellation (if is_cancelled is true)
-        $isCancelled = $this->faker->boolean(10); // 10% chance of being cancelled
+        $isCancelled = $this->faker->boolean(5); // 10% chance of being cancelled
         $cancelledAt = null;
         $cancellationReason = null;
 
@@ -56,25 +56,25 @@ class EventFactory extends Factory
             'signup_end_date' => $signupEndDate,
 
             // Number of seats
-            'seats' => $this->faker->randomElement([null, 10, 20, 50, 100, 200, 500]),
+            'seats' => $this->faker->randomElement([null, 10, 20, 50]),
 
             // Location
-            'location_id' => $this->faker->boolean(70) ? \App\Models\Location::factory() : null,
+            'location_id' => 1,
 
             // Limits
-            'min_age' => $this->faker->boolean(20) ? $this->faker->numberBetween(13, 18) : null,
-            'max_age' => $this->faker->boolean(20) ? $this->faker->numberBetween(60, 100) : null,
-            'class_restriction' => $this->faker->boolean(20) ? $this->faker->randomElement(['beginner', 'intermediate', 'advanced']) : null,
+            'min_age' => 16,
+            'max_age' => null,
+            //'class_restriction' => $this->faker->boolean(20) ? $this->faker->randomElement(['beginner', 'intermediate', 'advanced']) : null,
 
             // Restriction
-            'restriction' => $this->faker->randomElement(['everyone', 'members', 'crew']),
+            'restriction' => 'everyone',//$this->faker->randomElement(['everyone', 'members', 'crew']),
 
             // Cancellation
             'is_cancelled' => $isCancelled,
             'cancelled_at' => $cancelledAt,
             'cancellation_reason' => $cancellationReason,
 
-            'status' => $this->faker->randomElement(['published', 'draft', 'cancelled']),
+            'status' => $isCancelled ? 'cancelled':'published',
         ];
     }
     /**
@@ -94,8 +94,8 @@ class EventFactory extends Factory
             }
 
             // Randomly attach organizations
-            if ($this->faker->boolean(90)) { // 90% chance of having organizations
-                $organizations = \App\Models\Organization::inRandomOrder()->limit(rand(1, 2))->get();
+            if ($this->faker->boolean(100)) { // 90% chance of having organizations
+                $organizations = \App\Models\Organization::find(1);
                 if ($organizations->count() > 0) {
                     $event->organizations()->attach($organizations);
                 }
