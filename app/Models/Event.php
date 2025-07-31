@@ -176,7 +176,13 @@ class Event extends Model
             return true; // Unlimited seats
         }
 
-        return $this->signupped->count() < $this->seats;
+        // Check if the relationship is already loaded to avoid additional queries
+        if ($this->relationLoaded('signupped')) {
+            return $this->getRelation('signupped')->count() < $this->seats;
+        }
+
+        // If not loaded, load it once and cache the result
+        return $this->signupped()->count() < $this->seats;
     }
 
     /**

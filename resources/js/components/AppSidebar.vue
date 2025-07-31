@@ -115,6 +115,11 @@ const mainNavItems = computed(() => {
                 title:'Games', href: route('admin.games.index'), icon: GamepadIcon,
             },
             {
+                title: 'Consoles',
+                href: route('admin.consoles.index'),
+                icon: GamepadIcon,
+            },
+            {
                 title: 'Banners',
                 href: route('admin.banners.index'),
                 icon: Speaker,

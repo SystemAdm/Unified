@@ -171,6 +171,12 @@ class EventController extends Controller
 
                 $birthday = new \DateTime($user->birthday);
                 $today = new \DateTime();
+
+                // Check if birthday is in the future
+                if ($birthday > $today) {
+                    abort(403, "Invalid birthday: Birthday cannot be in the future.");
+                }
+
                 $age = $birthday->diff($today)->y;
 
                 if ($event->min_age !== null && $age < $event->min_age) {
@@ -180,17 +186,28 @@ class EventController extends Controller
                     abort(403, "You must be no more than {$event->max_age} years old to sign up for this event.");
                 }
             }
+
+            // Check if seats are available
+            if (!$event->hasAvailableSeats()) {
+                abort(403, 'No seats available for this event.');
+            }
         }
 
         // Check if user is already signed up
         if ($event->signupped->contains($user->id)) {
+            // Check signup timestamps
+            $signupTimestamp = $event->signupped()->where('user_id', $user->id)->first()->pivot->created_at;
+
             return redirect()->route('events.show', ['event' => $event->id])
-                ->with('message', 'You are already signed up for this event!')
+                ->with('message', 'You are already signed up for this event! (Signed up on: ' . $signupTimestamp . ')')
                 ->with('messageType', 'info');
         }
 
         // Add the user to the signupped list
         $event->signupped()->attach($user->id);
+
+        // Also add the user to the registered list
+        $event->registered()->attach($user->id);
 
         return redirect()->route('events.show', ['event' => $event->id])
             ->with('message', 'Successfully signed up for the event!')

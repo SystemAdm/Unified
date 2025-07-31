@@ -2,14 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import LaravelPaginator from '@/components/LaravelPaginator.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { MapPinIcon, UsersIcon } from 'lucide-vue-next';
@@ -37,12 +30,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Locations', href: route('locations.index') },
 ];
 
-// Decode HTML entities for pagination
-const decodeHtmlEntities = (html: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = html;
-    return textarea.value;
-};
 </script>
 
 <template>
@@ -91,38 +78,20 @@ const decodeHtmlEntities = (html: string) => {
 
                     <!-- Pagination -->
                     <div class="mt-6" v-if="props.locations.meta && props.locations.links">
-                        <Pagination :items-per-page="props.locations.meta.per_page" :total="props.locations.meta.total" :default-page="props.locations.meta.current_page">
-                            <PaginationContent>
-                                <template v-for="(link, i) in props.locations.links" :key="i">
-                                    <!-- Previous link -->
-                                    <PaginationPrevious
-                                        v-if="link.label === '&laquo; Previous'"
-                                        :href="link.url || '#'"
-                                    />
-
-                                    <!-- Page numbers -->
-                                    <PaginationItem
-                                        v-else-if="!isNaN(parseInt(decodeHtmlEntities(link.label)))"
-                                        :value="parseInt(decodeHtmlEntities(link.label))"
-                                        :is-active="link.active"
-                                        :href="link.url || '#'"
-                                    >
-                                        {{ decodeHtmlEntities(link.label) }}
-                                    </PaginationItem>
-
-                                    <!-- Next link -->
-                                    <PaginationNext
-                                        v-else-if="link.label === 'Next &raquo;'"
-                                        :href="link.url || '#'"
-                                    />
-
-                                    <!-- Ellipsis -->
-                                    <PaginationEllipsis
-                                        v-else-if="link.label === '...'"
-                                    />
-                                </template>
-                            </PaginationContent>
-                        </Pagination>
+                        <LaravelPaginator
+                            :pagination="{
+                                data: props.locations.data,
+                                links: props.locations.links,
+                                current_page: props.locations.meta.current_page,
+                                from: props.locations.meta.from,
+                                last_page: props.locations.meta.last_page,
+                                path: props.locations.meta.path,
+                                per_page: props.locations.meta.per_page,
+                                to: props.locations.meta.to,
+                                total: props.locations.meta.total
+                            }"
+                            onlyKey="locations"
+                        />
                     </div>
                 </div>
             </div>

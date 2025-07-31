@@ -14,8 +14,8 @@ declare global {
     }
 }
 
-import { Head, Link } from '@inertiajs/vue3';
-import { ref, reactive, onMounted } from 'vue';
+import { Head, Link, usePage } from '@inertiajs/vue3';
+import { ref, reactive, onMounted, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 
 // UI Components
@@ -25,10 +25,11 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import EventCard from '@/components/EventCard.vue';
+import NewsCard from '@/components/NewsCard.vue';
 
 // Icons
-import { Calendar, Info, Users, Heart, Mail, DollarSign, LogInIcon, ClipboardPenLineIcon, Bell, Megaphone, Newspaper
-} from 'lucide-vue-next';
+import { Calendar, Info, Users, Heart, Mail, DollarSign, LogInIcon, ClipboardPenLineIcon, Bell, Megaphone, Newspaper,
+    Gamepad2, LayoutGrid, Plus, BookOpen } from 'lucide-vue-next';
 
 // Define props
 defineProps<{
@@ -113,6 +114,12 @@ const formStatus = reactive({
     message: '',
 });
 
+// Check if user is authenticated
+const page = usePage();
+const isAuthenticated = computed(() => {
+    return !!page.props.auth?.user;
+});
+
 // Load Cloudflare Turnstile script
 onMounted(() => {});
 
@@ -179,19 +186,48 @@ const membershipTiers = ref([
                     Your ultimate destination for gaming events, latest releases, and community gatherings
                 </p>
                 <div class="flex flex-wrap justify-center gap-4">
-                    <Link :href="route('login')"><Button size="lg" variant="default"><LogInIcon /> Sign in / <ClipboardPenLineIcon /> Register an account </Button></Link>
+                    <template v-if="isAuthenticated">
+                        <Link :href="route('dashboard')"><Button size="lg" variant="default"><LayoutGrid /> Dashboard</Button></Link>
+                    </template>
+                    <template v-else>
+                        <Link :href="route('login')"><Button size="lg" variant="default"><LogInIcon /> Sign in / <ClipboardPenLineIcon /> Register an account </Button></Link>
+                    </template>
                     <a href="https://discord.gg/k6WDYMx" target="_blank">
                         <Button size="lg" variant="secondary">
                             <font-awesome-icon :icon="faDiscord" />
                             Join our Discord Community
                         </Button>
                     </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Browse Games and Consoles Section -->
+        <section class="bg-muted py-16">
+            <div class="container mx-auto px-4">
+                <div class="mb-10 flex items-center">
+                    <Gamepad2 class="mr-3 h-8 w-8 text-muted-foreground" />
+                    <h2 class="text-3xl font-bold">Browse Our Collection</h2>
+                </div>
+                <div class="flex flex-wrap justify-center gap-6">
                     <Link :href="route('games.index')">
-                        <Button size="lg" variant="outline">Browse Games</Button>
+                        <Button size="lg" class="min-w-[200px]">
+                            <Gamepad2 class="mr-2 h-4" />
+                            Browse Games
+                        </Button>
                     </Link>
                     <Link :href="route('consoles.index')">
-                        <Button size="lg" variant="outline">Browse Consoles</Button>
+                        <Button size="lg" class="min-w-[200px]">
+                            <Gamepad2 class="mr-2 h-4" />
+                            Browse Consoles
+                        </Button>
                     </Link>
+                </div>
+                <div class="mt-6 text-center">
+                    <p class="text-muted-foreground max-w-2xl mx-auto">
+                        Explore our extensive collection of games and consoles. From retro classics to the latest releases,
+                        we have something for every gaming enthusiast.
+                    </p>
                 </div>
             </div>
         </section>
@@ -204,32 +240,12 @@ const membershipTiers = ref([
                     <h2 class="text-3xl font-bold">Latest News</h2>
                 </div>
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-                    <Card v-for="article in news" :key="article.id" class="overflow-hidden">
-                        <img
-                            :src="article.featured_image
-                                ? `/storage/${article.featured_image}`
-                                : `https://placehold.co/400x200/0f0f0f/ffffff?text=${encodeURIComponent(article.title)}`"
-                            :alt="article.title"
-                            class="h-48 w-full object-cover"
-                        />
-                        <CardHeader>
-                            <CardTitle class="text-lg">{{ article.title }}</CardTitle>
-                            <CardDescription>
-                                <span v-if="article.author">By {{ article.author }} • </span>
-                                {{ article.published_at ? formatEventDate(article.published_at) : formatEventDate(article.created_at) }}
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <p class="text-muted-foreground">
-                                {{ article.excerpt || article.content.substring(0, 150) + '...' }}
-                            </p>
-                        </CardContent>
-                        <CardFooter>
-                            <Link :href="route('news.show', { news: article.id })">
-                                <Button class="w-full">Read More</Button>
-                            </Link>
-                        </CardFooter>
-                    </Card>
+                    <NewsCard
+                        v-for="article in news"
+                        :key="article.id"
+                        :article="article"
+                        :useCardComponents="true"
+                    />
                 </div>
                 <div class="mt-10 text-center">
                     <Link :href="route('news.index')">
@@ -333,7 +349,10 @@ const membershipTiers = ref([
                             </ul>
                         </CardContent>
                         <CardFooter>
-                            <Button class="w-full">Join Now</Button>
+                            <Button class="w-full">
+                                <Plus class="mr-2 h-4 w-4" />
+                                Join Now
+                            </Button>
                         </CardFooter>
                     </Card>
                 </div>
@@ -367,7 +386,10 @@ const membershipTiers = ref([
                             friendships. We believe that gaming is more than just a hobby—it's a way to connect, learn, and grow together.
                         </p>
                         <div class="flex flex-wrap gap-4">
-                            <Button>Learn More About Us</Button>
+                            <Button>
+                                <BookOpen class="mr-2 h-4 w-4" />
+                                Learn More About Us
+                            </Button>
                         </div>
                     </div>
                 </div>

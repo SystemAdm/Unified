@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Search, Settings, Cpu, Microchip, HardDrive } from 'lucide-vue-next'
 import type { BreadcrumbItem } from '@/types';
 import { computed } from 'vue'
+import LaravelPaginator from '@/components/LaravelPaginator.vue'
 
 interface Console {
   id: number
@@ -174,34 +175,12 @@ const breadcrumbs: BreadcrumbItem[] = [
       </div>
 
       <!-- Pagination -->
-      <div class="mt-8 flex justify-center">
-        <div class="flex space-x-2">
-          <Link
-            v-if="consoles.links.prev"
-            :href="consoles.links.prev || '#'"
-            class="px-4 py-2 border rounded"
-          >
-            Previous
-          </Link>
-
-          <Link
-            v-for="(link, i) in consoles.links.filter(l => !['&laquo; Previous', 'Next &raquo;'].includes(l.label))"
-            :key="i"
-            :href="link.url || '#'"
-            class="px-4 py-2 border rounded"
-            :class="{ 'bg-primary text-primary-foreground': link.active }"
-          >
-            {{ isNaN(parseInt(link.label)) ? '...' : link.label }}
-          </Link>
-
-          <Link
-            v-if="consoles.links.next"
-            :href="consoles.links.next || '#'"
-            class="px-4 py-2 border rounded"
-          >
-            Next
-          </Link>
-        </div>
+      <div class="mt-8">
+        <LaravelPaginator
+          v-if="consoles.data.length > 0"
+          :pagination="consoles"
+          onlyKey="consoles"
+        />
       </div>
     </div>
   </Layout>

@@ -157,7 +157,7 @@ const setVerified = (userId: number) => {
                 <div v-else class="space-y-2">
                     <div v-for="user in props.phone.users" :key="user.id" class="flex items-center justify-between p-3 border rounded-md">
                         <div class="flex items-center space-x-2">
-                            <span>{{ user.name }}</span>
+                            <span>{{ user.name || `User #${user.id}` }}</span>
                             <StarIcon v-if="user.pivot?.is_primary" class="h-4 w-4 text-yellow-500" title="Primary" />
                             <ShieldCheckIcon v-if="user.pivot?.verified_at" class="h-4 w-4 text-green-500" title="Verified" />
                         </div>
@@ -220,7 +220,7 @@ const setVerified = (userId: number) => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="user in props.users" :key="user.id" :value="user.id.toString()">
-                                        {{ user.name }}
+                                        {{ user.name || `User #${user.id}` }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>

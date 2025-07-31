@@ -43,13 +43,19 @@ const formatNewsDate = (date: string) => {
         <Head :title="props.news.title" />
 
         <!-- Back to News button -->
-        <div class="mb-6">
+        <div class="mb-6 flex justify-between">
             <Link
                 :href="route('news.index')"
                 class="inline-flex items-center text-muted-foreground hover:text-foreground"
             >
                 <ArrowLeft class="mr-2 h-4 w-4" />
                 Back to News
+            </Link>
+            <Link
+                :href="route('admin.news.show', { news: props.news.id })"
+                class="inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+            >
+                Admin View
             </Link>
         </div>
 
@@ -89,13 +95,19 @@ const formatNewsDate = (date: string) => {
         </article>
 
         <!-- Back to News button (bottom) -->
-        <div class="mt-12 text-center">
+        <div class="mt-12 text-center space-x-4">
             <Link
                 :href="route('news.index')"
                 class="inline-flex items-center justify-center rounded-md bg-primary px-6 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
                 <ArrowLeft class="mr-2 h-4 w-4" />
                 Back to All News
+            </Link>
+            <Link
+                :href="route('admin.news.index')"
+                class="inline-flex items-center justify-center rounded-md bg-secondary px-6 py-3 text-sm font-medium text-secondary-foreground hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+                Admin Index
             </Link>
         </div>
     </AppLayout>

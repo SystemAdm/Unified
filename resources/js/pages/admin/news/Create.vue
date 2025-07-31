@@ -119,7 +119,7 @@ const toggleRole = (roleValue: string) => {
                                 @click="form.selected_image = image.path; form.featured_image = null"
                             >
                                 <img :src="image.url" :alt="image.name" class="w-full h-24 object-cover" />
-                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all"></div>
+                                <div class="absolute inset-0 bg-transparent hover:bg-gray-800/50 transition-all"></div>
                                 <div v-if="form.selected_image === image.path" class="absolute top-1 right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                                     ✓
                                 </div>

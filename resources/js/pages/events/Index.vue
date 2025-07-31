@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Head, router } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import AppLayout from '@/layouts/AppLayout.vue';
 import EventCard from '@/components/EventCard.vue';
+import LaravelPaginator from '@/components/LaravelPaginator.vue';
 import { type BreadcrumbItem } from '@/types';
 import { CalendarIcon } from 'lucide-vue-next';
 
@@ -49,12 +49,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-// Decode HTML entities
-const decodeHtmlEntities = (html: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = html;
-    return textarea.value;
-};
 </script>
 
 <template>
@@ -78,51 +72,10 @@ const decodeHtmlEntities = (html: string) => {
         </div>
 
         <!-- Pagination -->
-        <div class="mt-6">
-            <Pagination :items-per-page="props.events.per_page" :total="props.events.total" :default-page="props.events.from">
-                <PaginationContent>
-                    <template v-for="(link, i) in props.events.links" :key="i">
-                        <!-- Previous link -->
-                        <a
-                            v-if="link.label === '&laquo; Previous' && link.url"
-                            href="#"
-                            @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
-                        >
-                            <PaginationPrevious />
-                        </a>
-
-                        <!-- Page numbers -->
-                        <a
-                            v-else-if="!isNaN(parseInt(decodeHtmlEntities(link.label))) && link.url"
-                            href="#"
-                            @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
-                        >
-                            <PaginationItem :value="parseInt(decodeHtmlEntities(link.label))" :is-active="link.active">
-                                {{ decodeHtmlEntities(link.label) }}
-                            </PaginationItem>
-                        </a>
-                        <PaginationItem
-                            v-else-if="!isNaN(parseInt(decodeHtmlEntities(link.label)))"
-                            :value="parseInt(decodeHtmlEntities(link.label))"
-                            :is-active="link.active"
-                        >
-                            {{ decodeHtmlEntities(link.label) }}
-                        </PaginationItem>
-
-                        <!-- Next link -->
-                        <a
-                            v-else-if="link.label === 'Next &raquo;' && link.url"
-                            href="#"
-                            @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
-                        >
-                            <PaginationNext />
-                        </a>
-
-                        <!-- Ellipsis -->
-                        <PaginationEllipsis v-else-if="link.label === '...'" />
-                    </template>
-                </PaginationContent>
-            </Pagination>
-        </div>
+        <LaravelPaginator
+            v-if="props.events.data.length > 0"
+            :pagination="props.events"
+            onlyKey="events"
+        />
     </AppLayout>
 </template>

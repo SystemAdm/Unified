@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { UserIcon, ArrowLeftIcon } from 'lucide-vue-next';
+import { UserIcon, ArrowLeftIcon, ArrowRightIcon, XIcon, UserMinusIcon } from 'lucide-vue-next';
 
 interface User {
     id: number;
@@ -30,9 +30,8 @@ interface Event {
 
 interface Props {
     event: Event;
-    signuppedUsers: User[];
     registeredUsers: User[];
-    visitedUsers: User[];
+    attendingUsers: User[];
     insideUsers: User[];
     title: string;
 }
@@ -56,13 +55,42 @@ const formatDate = (dateString: string) => {
     });
 };
 
+// Functions to handle user state transitions
+const moveToAttending = (userId: number) => {
+    router.post(route('admin.events.copy-to-attending', {
+        event: props.event.id,
+        user: userId
+    }));
+};
+
+// Move user to Inside list
+const moveToInside = (userId: number) => {
+    router.post(route('admin.events.copy-to-inside', {
+        event: props.event.id,
+        user: userId
+    }));
+};
+
+// Remove user from Inside list
+const removeFromInside = (userId: number) => {
+    router.delete(route('admin.events.remove-from-inside', {
+        event: props.event.id,
+        user: userId
+    }));
+};
+
+const removeFromAll = (userId: number) => {
+    router.delete(route('admin.events.remove-from-all', {
+        event: props.event.id,
+        user: userId
+    }));
+};
+
 const getListTypeColor = (type: string) => {
     switch (type) {
-        case 'signupped':
-            return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
         case 'registered':
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-        case 'visited':
+        case 'attending':
             return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
         case 'inside':
             return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
@@ -85,61 +113,7 @@ const getListTypeColor = (type: string) => {
                 />
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-                <!-- Signupped Users Column -->
-                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                    <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-medium">Signupped Users</h3>
-                        <span
-                            class="px-3 py-1 rounded-full text-sm font-medium"
-                            :class="getListTypeColor('signupped')"
-                        >
-                            {{ props.signuppedUsers.length }}
-                        </span>
-                    </div>
-                    <div v-if="props.signuppedUsers.length === 0" class="p-8 text-center">
-                        <UserIcon class="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                        <p class="text-gray-500 dark:text-gray-400">
-                            No signupped users for this event.
-                        </p>
-                    </div>
-                    <div v-else class="overflow-y-auto max-h-96">
-                        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                            <thead class="bg-gray-50 dark:bg-gray-700">
-                                <tr>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        User
-                                    </th>
-                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                                        Added On
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr v-for="user in props.signuppedUsers" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
-                                    <td class="px-4 py-2 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="ml-2">
-                                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                                    {{ user.given_name }}
-                                                    <span v-if="user.additional_name">{{ user.additional_name }} </span>
-                                                    {{ user.family_name }}
-                                                </div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                    ID: {{ user.id }}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-4 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
-                                        {{ user.pivot?.created_at ? formatDate(user.pivot.created_at) : 'Unknown' }}
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
                 <!-- Registered Users Column -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                     <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -167,6 +141,9 @@ const getListTypeColor = (type: string) => {
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Added On
                                     </th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -188,27 +165,49 @@ const getListTypeColor = (type: string) => {
                                     <td class="px-4 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                                         {{ user.pivot?.created_at ? formatDate(user.pivot.created_at) : 'Unknown' }}
                                     </td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                class="text-blue-600 hover:text-blue-800"
+                                                @click="moveToAttending(user.id)"
+                                                title="Move to Attending"
+                                            >
+                                                <ArrowRightIcon class="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                class="text-red-600 hover:text-red-800"
+                                                @click="removeFromAll(user.id)"
+                                                title="Remove from all lists"
+                                            >
+                                                <UserMinusIcon class="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Visited Users Column -->
+                <!-- Attending Users Column -->
                 <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                     <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-                        <h3 class="text-lg font-medium">Visited Users</h3>
+                        <h3 class="text-lg font-medium">Attending Users</h3>
                         <span
                             class="px-3 py-1 rounded-full text-sm font-medium"
-                            :class="getListTypeColor('visited')"
+                            :class="getListTypeColor('attending')"
                         >
-                            {{ props.visitedUsers.length }}
+                            {{ props.attendingUsers.length }}
                         </span>
                     </div>
-                    <div v-if="props.visitedUsers.length === 0" class="p-8 text-center">
+                    <div v-if="props.attendingUsers.length === 0" class="p-8 text-center">
                         <UserIcon class="h-12 w-12 mx-auto text-gray-400 mb-4" />
                         <p class="text-gray-500 dark:text-gray-400">
-                            No visited users for this event.
+                            No attending users for this event.
                         </p>
                     </div>
                     <div v-else class="overflow-y-auto max-h-96">
@@ -221,10 +220,13 @@ const getListTypeColor = (type: string) => {
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Added On
                                     </th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                <tr v-for="user in props.visitedUsers" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <tr v-for="user in props.attendingUsers" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                     <td class="px-4 py-2 whitespace-nowrap">
                                         <div class="flex items-center">
                                             <div class="ml-2">
@@ -241,6 +243,28 @@ const getListTypeColor = (type: string) => {
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                                         {{ user.pivot?.created_at ? formatDate(user.pivot.created_at) : 'Unknown' }}
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                class="text-purple-600 hover:text-purple-800"
+                                                @click="moveToInside(user.id)"
+                                                title="Move to Inside"
+                                            >
+                                                <ArrowRightIcon class="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                class="text-red-600 hover:text-red-800"
+                                                @click="removeFromAll(user.id)"
+                                                title="Remove from all lists"
+                                            >
+                                                <UserMinusIcon class="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -275,6 +299,9 @@ const getListTypeColor = (type: string) => {
                                     <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                                         Added On
                                     </th>
+                                    <th scope="col" class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                                        Actions
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
@@ -295,6 +322,28 @@ const getListTypeColor = (type: string) => {
                                     </td>
                                     <td class="px-4 py-2 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
                                         {{ user.pivot?.created_at ? formatDate(user.pivot.created_at) : 'Unknown' }}
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <div class="flex space-x-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                class="text-gray-600 hover:text-gray-800"
+                                                @click="removeFromInside(user.id)"
+                                                title="Remove from Inside"
+                                            >
+                                                <XIcon class="h-4 w-4" />
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                class="text-red-600 hover:text-red-800"
+                                                @click="removeFromAll(user.id)"
+                                                title="Remove from all lists"
+                                            >
+                                                <UserMinusIcon class="h-4 w-4" />
+                                            </Button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>

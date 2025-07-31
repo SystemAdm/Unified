@@ -14,6 +14,12 @@ interface Props {
     };
 }
 
+interface ValidationResult {
+    check: string;
+    status: 'passed' | 'failed' | 'warning';
+    message: string;
+}
+
 const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -27,16 +33,19 @@ const encryptedText = ref('');
 const responseMessage = ref('');
 const isSuccess = ref(false);
 const isLoading = ref(false);
+const validationResults = ref<ValidationResult[]>([]);
 
 const validateText = async () => {
     if (!encryptedText.value.trim()) {
         responseMessage.value = 'Please enter encrypted text to validate.';
         isSuccess.value = false;
+        validationResults.value = [];
         return;
     }
 
     isLoading.value = true;
     responseMessage.value = '';
+    validationResults.value = [];
 
     try {
         const response = await axios.post(route('admin.events.validate-text.submit', { event: props.event.id }), {
@@ -45,6 +54,20 @@ const validateText = async () => {
 
         responseMessage.value = response.data.message;
         isSuccess.value = response.data.success;
+
+        // Store validation results if they exist in the response
+        if (response.data.validation_results) {
+            validationResults.value = response.data.validation_results;
+        } else {
+            // If decryption failed, add a manual validation result
+            if (!response.data.success && response.data.message.includes('Invalid encrypted text')) {
+                validationResults.value = [{
+                    check: 'Decrypting',
+                    status: 'failed',
+                    message: 'Failed to decrypt the provided text'
+                }];
+            }
+        }
     } catch (error: any) {
         if (error.response && error.response.data) {
             responseMessage.value = error.response.data.message || 'An error occurred during validation.';
@@ -52,6 +75,7 @@ const validateText = async () => {
             responseMessage.value = 'An error occurred during validation.';
         }
         isSuccess.value = false;
+        validationResults.value = [];
     } finally {
         isLoading.value = false;
     }
@@ -67,6 +91,7 @@ const clearForm = () => {
     encryptedText.value = '';
     responseMessage.value = '';
     isSuccess.value = false;
+    validationResults.value = [];
 };
 </script>
 
@@ -173,6 +198,102 @@ const clearForm = () => {
                             {{ responseMessage }}
                         </p>
                     </div>
+                </div>
+
+                <!-- Validation Results -->
+                <div v-if="validationResults.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <h4 class="font-semibold mb-2">Validation Details:</h4>
+                    <ul class="space-y-2">
+                        <li
+                            v-for="(result, index) in validationResults"
+                            :key="index"
+                            class="flex items-start space-x-2 p-2 rounded"
+                            :class="{
+                                'bg-green-50 dark:bg-green-900/10': result.status === 'passed',
+                                'bg-red-50 dark:bg-red-900/10': result.status === 'failed',
+                                'bg-yellow-50 dark:bg-yellow-900/10': result.status === 'warning'
+                            }"
+                        >
+                            <!-- Status Icon -->
+                            <div
+                                class="flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5"
+                                :class="{
+                                    'bg-green-100 dark:bg-green-800': result.status === 'passed',
+                                    'bg-red-100 dark:bg-red-800': result.status === 'failed',
+                                    'bg-yellow-100 dark:bg-yellow-800': result.status === 'warning'
+                                }"
+                            >
+                                <!-- Check Icon -->
+                                <svg
+                                    v-if="result.status === 'passed'"
+                                    class="w-3 h-3 text-green-600 dark:text-green-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+
+                                <!-- X Icon -->
+                                <svg
+                                    v-if="result.status === 'failed'"
+                                    class="w-3 h-3 text-red-600 dark:text-red-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+
+                                <!-- Warning Icon -->
+                                <svg
+                                    v-if="result.status === 'warning'"
+                                    class="w-3 h-3 text-yellow-600 dark:text-yellow-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                                </svg>
+                            </div>
+
+                            <!-- Check Info -->
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <span
+                                        class="font-medium"
+                                        :class="{
+                                            'text-green-700 dark:text-green-300': result.status === 'passed',
+                                            'text-red-700 dark:text-red-300': result.status === 'failed',
+                                            'text-yellow-700 dark:text-yellow-300': result.status === 'warning'
+                                        }"
+                                    >
+                                        {{ result.check }}
+                                    </span>
+                                    <span
+                                        class="text-xs uppercase font-semibold px-2 py-0.5 rounded"
+                                        :class="{
+                                            'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100': result.status === 'passed',
+                                            'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100': result.status === 'failed',
+                                            'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100': result.status === 'warning'
+                                        }"
+                                    >
+                                        {{ result.status }}
+                                    </span>
+                                </div>
+                                <p
+                                    class="text-sm mt-1"
+                                    :class="{
+                                        'text-green-600 dark:text-green-400': result.status === 'passed',
+                                        'text-red-600 dark:text-red-400': result.status === 'failed',
+                                        'text-yellow-600 dark:text-yellow-400': result.status === 'warning'
+                                    }"
+                                >
+                                    {{ result.message }}
+                                </p>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
 

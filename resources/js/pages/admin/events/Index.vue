@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import LaravelPaginator from '@/components/LaravelPaginator.vue';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -112,12 +112,6 @@ const confirmDelete = (id: number, title: string) => {
     }
 };
 
-// Decode HTML entities
-const decodeHtmlEntities = (html: string) => {
-    const textarea = document.createElement('textarea');
-    textarea.innerHTML = html;
-    return textarea.value;
-};
 
 // Filter form
 const showFilters = ref(false);
@@ -445,52 +439,11 @@ const toggleFilters = () => {
                 </div>
 
                 <!-- Pagination -->
-                <div class="mt-6">
-                    <Pagination :items-per-page="props.events.per_page" :total="props.events.total" :default-page="props.events.from">
-                        <PaginationContent>
-                            <template v-for="(link, i) in props.events.links" :key="i">
-                                <!-- Previous link -->
-                                <a
-                                    v-if="link.label === '&laquo; Previous' && link.url"
-                                    href="#"
-                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
-                                >
-                                    <PaginationPrevious />
-                                </a>
-
-                                <!-- Page numbers -->
-                                <a
-                                    v-else-if="!isNaN(parseInt(decodeHtmlEntities(link.label))) && link.url"
-                                    href="#"
-                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
-                                >
-                                    <PaginationItem :value="parseInt(decodeHtmlEntities(link.label))" :is-active="link.active">
-                                        {{ decodeHtmlEntities(link.label) }}
-                                    </PaginationItem>
-                                </a>
-                                <PaginationItem
-                                    v-else-if="!isNaN(parseInt(decodeHtmlEntities(link.label)))"
-                                    :value="parseInt(decodeHtmlEntities(link.label))"
-                                    :is-active="link.active"
-                                >
-                                    {{ decodeHtmlEntities(link.label) }}
-                                </PaginationItem>
-
-                                <!-- Next link -->
-                                <a
-                                    v-else-if="link.label === 'Next &raquo;' && link.url"
-                                    href="#"
-                                    @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['events'] })"
-                                >
-                                    <PaginationNext />
-                                </a>
-
-                                <!-- Ellipsis -->
-                                <PaginationEllipsis v-else-if="link.label === '...'" />
-                            </template>
-                        </PaginationContent>
-                    </Pagination>
-                </div>
+                <LaravelPaginator
+                    v-if="props.events.data.length > 0"
+                    :pagination="props.events"
+                    onlyKey="events"
+                />
             </div>
         </div>
     </AppLayout>

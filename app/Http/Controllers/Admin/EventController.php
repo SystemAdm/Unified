@@ -193,7 +193,7 @@ class EventController extends Controller
         $this->authorize(Permission::ADMIN_EVENT->value);
 
         // Load the relationships
-        $event->load(['location', 'users', 'organizations', 'signupped', 'registered', 'visited', 'inside']);
+        $event->load(['location', 'users', 'organizations', 'signupped', 'registered', 'attending', 'inside']);
 
         return Inertia::render('admin/events/Show', [
             'event' => $event,
@@ -435,7 +435,10 @@ class EventController extends Controller
         // Refresh the event model to get the updated relationships
         $event->refresh();
 
-        return redirect()->route('admin.events.show', ['event' => $event->id])
+        // Broadcast the updated registered users list
+        event(new \App\Events\EventUserListUpdated($event, 'registered'));
+
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
             ->with('success', 'User has been registered for the event.');
     }
 
@@ -450,7 +453,7 @@ class EventController extends Controller
         $event->registered()->detach($user->id);
         $event->attending()->detach($user->id);
 
-        return redirect()->route('admin.events.show', ['event' => $event->id])
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
             ->with('success', 'User has been removed from all event lists.');
     }
 
@@ -475,7 +478,19 @@ class EventController extends Controller
         // Refresh the event model to get the updated relationships
         $event->refresh();
 
-        return redirect()->route('admin.events.show', ['event' => $event->id])
+        // Broadcast the updated attending users list
+        event(new \App\Events\EventUserListUpdated($event, 'attending'));
+
+        // Check if the request wants JSON response
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'User has been marked as attending the event.',
+                'event' => $event->load(['registered', 'attending', 'inside'])
+            ]);
+        }
+
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
             ->with('success', 'User has been marked as attending the event.');
     }
 
@@ -489,7 +504,7 @@ class EventController extends Controller
         $event->registered()->detach($user->id);
         $event->attending()->detach($user->id);
 
-        return redirect()->route('admin.events.show', ['event' => $event->id])
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
             ->with('success', 'User has been removed from registered and attending lists.');
     }
 
@@ -502,8 +517,58 @@ class EventController extends Controller
 
         $event->attending()->detach($user->id);
 
-        return redirect()->route('admin.events.show', ['event' => $event->id])
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
             ->with('success', 'User has been removed from the attending list.');
+    }
+
+    /**
+     * Copy a user from attending to inside.
+     */
+    public function copyToInside(Event $event, User $user)
+    {
+        $this->authorize(Permission::UPDATE_EVENT->value);
+
+        // Get the current inside users
+        $insideUsers = $event->inside->pluck('id')->toArray();
+
+        // Add the new user if not already inside
+        if (!in_array($user->id, $insideUsers)) {
+            $insideUsers[] = $user->id;
+        }
+
+        // Sync the inside users
+        $event->inside()->sync($insideUsers);
+
+        // Refresh the event model to get the updated relationships
+        $event->refresh();
+
+        // Broadcast the updated inside users list
+        event(new \App\Events\EventUserListUpdated($event, 'inside'));
+
+        // Check if the request wants JSON response
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'User has been marked as inside the event.',
+                'event' => $event->load(['registered', 'attending', 'inside'])
+            ]);
+        }
+
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
+            ->with('success', 'User has been marked as inside the event.');
+    }
+
+    /**
+     * Remove a user from the inside list.
+     */
+    public function removeFromInside(Event $event, User $user)
+    {
+        $this->authorize(Permission::UPDATE_EVENT->value);
+
+        $event->inside()->detach($user->id);
+
+        return redirect()->route('admin.events.show', ['event' => $event->id])
+            ->with('success', 'User has been removed from the inside list.');
     }
 
     /**
@@ -524,9 +589,9 @@ class EventController extends Controller
     }
 
     /**
-     * Show visited users for an event (using attending relationship).
+     * Show attending users for an event.
      */
-    public function showVisitedUsers(Event $event)
+    public function showAttendingUsers(Event $event)
     {
         $this->authorize(Permission::ADMIN_EVENT->value);
 
@@ -535,42 +600,56 @@ class EventController extends Controller
         return Inertia::render('admin/events/UserList', [
             'event' => $event,
             'users' => $event->attending,
-            'listType' => 'visited',
-            'title' => 'Visited Users'
+            'listType' => 'attending',
+            'title' => 'Attending Users'
         ]);
     }
 
     /**
-     * Show inside users for an event (using attending relationship).
+     * Show inside users for an event.
      */
     public function showInsideUsers(Event $event)
     {
         $this->authorize(Permission::ADMIN_EVENT->value);
 
-        $event->load(['attending']);
+        $event->load(['inside']);
 
         return Inertia::render('admin/events/UserList', [
             'event' => $event,
-            'users' => $event->attending,
+            'users' => $event->inside,
             'listType' => 'inside',
             'title' => 'Inside Users'
         ]);
     }
 
     /**
-     * Show all user types for an event (signupped, registered, visited, inside).
+     * Show all user types for an event (signupped, registered, attending, inside).
      */
     public function showAllUsers(Event $event)
     {
         $this->authorize(Permission::ADMIN_EVENT->value);
 
-        $event->load(['signupped', 'registered', 'visited', 'inside']);
+        // Only select the columns we need for display
+        $columns = ['users.id', 'users.given_name', 'users.additional_name', 'users.family_name'];
+
+        // Load all relationships in a single query with the necessary columns
+        $event->loadMissing([
+            'registered' => function ($query) use ($columns) {
+                $query->select($columns)->withPivot('created_at');
+            },
+            'attending' => function ($query) use ($columns) {
+                $query->select($columns)->withPivot('created_at');
+            },
+            'inside' => function ($query) use ($columns) {
+                $query->select($columns)->withPivot('created_at');
+            }
+        ]);
 
         return Inertia::render('admin/events/AllUsersList', [
             'event' => $event,
             'signuppedUsers' => $event->signupped,
             'registeredUsers' => $event->registered,
-            'visitedUsers' => $event->visited,
+            'attendingUsers' => $event->attending,
             'insideUsers' => $event->inside,
             'title' => 'Users'
         ]);
@@ -677,12 +756,168 @@ class EventController extends Controller
             $user = User::find($userId);
 
             if ($user) {
+                // Perform validation checks
+                $validationResults = [];
+                $canRegister = true;
+
+                // 1. Check age requirement
+                if ($event->min_age !== null || $event->max_age !== null) {
+                    $userAge = $user->birthday ? $user->birthday->diffInYears(now()) : null;
+
+                    if ($userAge === null) {
+                        $validationResults[] = [
+                            'check' => 'Age requirement',
+                            'status' => 'warning',
+                            'message' => 'User age unknown (no birthday)'
+                        ];
+                    } else {
+                        if ($event->min_age !== null && $userAge < $event->min_age) {
+                            $validationResults[] = [
+                                'check' => 'Age requirement',
+                                'status' => 'failed',
+                                'message' => "User age ($userAge) is below minimum required age ({$event->min_age})"
+                            ];
+                            $canRegister = false;
+                        } elseif ($event->max_age !== null && $userAge > $event->max_age) {
+                            $validationResults[] = [
+                                'check' => 'Age requirement',
+                                'status' => 'failed',
+                                'message' => "User age ($userAge) is above maximum allowed age ({$event->max_age})"
+                            ];
+                            $canRegister = false;
+                        } else {
+                            $validationResults[] = [
+                                'check' => 'Age requirement',
+                                'status' => 'passed',
+                                'message' => "User meets age requirements"
+                            ];
+                        }
+                    }
+                } else {
+                    $validationResults[] = [
+                        'check' => 'Age requirement',
+                        'status' => 'passed',
+                        'message' => "No age restrictions for this event"
+                    ];
+                }
+
+                // 2. Check restriction
+                if ($event->restriction && $event->restriction !== 'everyone') {
+                    $meetsRestriction = false;
+
+                    if ($event->restriction === 'members' && $user->hasRole('member')) {
+                        $meetsRestriction = true;
+                    } elseif ($event->restriction === 'crew' && $user->hasRole('crew')) {
+                        $meetsRestriction = true;
+                    }
+
+                    if ($meetsRestriction) {
+                        $validationResults[] = [
+                            'check' => 'Restriction',
+                            'status' => 'passed',
+                            'message' => "User meets event restrictions ({$event->restriction})"
+                        ];
+                    } else {
+                        $validationResults[] = [
+                            'check' => 'Restriction',
+                            'status' => 'failed',
+                            'message' => "User does not meet event restrictions: {$event->restriction}"
+                        ];
+                        $canRegister = false;
+                    }
+                } else {
+                    $validationResults[] = [
+                        'check' => 'Restriction',
+                        'status' => 'passed',
+                        'message' => "No restrictions for this event"
+                    ];
+                }
+
+                // 3. Check signup
+                if ($event->has_signup) {
+                    $validationResults[] = [
+                        'check' => 'Has signup',
+                        'status' => 'passed',
+                        'message' => "Event has signup enabled"
+                    ];
+
+                    // 3.1 Check if already signed up
+                    $alreadySignedUp = $event->signupped->contains($user->id);
+                    if ($alreadySignedUp) {
+                        $validationResults[] = [
+                            'check' => 'Already signed up',
+                            'status' => 'passed',
+                            'message' => "User has already signed up for this event"
+                        ];
+                    } else {
+                        $validationResults[] = [
+                            'check' => 'Already signed up',
+                            'status' => 'warning',
+                            'message' => "User has not signed up for this event"
+                        ];
+                    }
+
+                    // 3.2 Check signup timestamps
+                    $now = now();
+                    if ($event->signup_start_date && $now < $event->signup_start_date) {
+                        $validationResults[] = [
+                            'check' => 'Signup timestamps',
+                            'status' => 'failed',
+                            'message' => "Signup period has not started yet"
+                        ];
+                        $canRegister = false;
+                    } elseif ($event->signup_end_date && $now > $event->signup_end_date) {
+                        $validationResults[] = [
+                            'check' => 'Signup timestamps',
+                            'status' => 'failed',
+                            'message' => "Signup period has ended"
+                        ];
+                        $canRegister = false;
+                    } else {
+                        $validationResults[] = [
+                            'check' => 'Signup timestamps',
+                            'status' => 'passed',
+                            'message' => "Signup period is active"
+                        ];
+                    }
+
+                    // 3.3 Check seats available
+                    if ($event->hasAvailableSeats()) {
+                        $validationResults[] = [
+                            'check' => 'Seats available',
+                            'status' => 'passed',
+                            'message' => "Seats are available ({$event->available_seats} remaining)"
+                        ];
+                    } else {
+                        $validationResults[] = [
+                            'check' => 'Seats available',
+                            'status' => 'failed',
+                            'message' => "No seats available"
+                        ];
+                        $canRegister = false;
+                    }
+                } else {
+                    $validationResults[] = [
+                        'check' => 'Has signup',
+                        'status' => 'warning',
+                        'message' => "Event does not have signup enabled"
+                    ];
+                }
+
                 // Get the current registered users
                 $registeredUsers = $event->registered->pluck('id')->toArray();
 
-                // Add the user if not already registered
+                // Check if already registered
                 $alreadyRegistered = in_array($user->id, $registeredUsers);
-                if (!$alreadyRegistered) {
+
+                if ($alreadyRegistered) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => "User validated successfully (already registered for the event): {$user->given_name} {$user->family_name}",
+                        'user' => $user,
+                        'validation_results' => $validationResults
+                    ]);
+                } elseif ($canRegister) {
                     $registeredUsers[] = $user->id;
 
                     // Sync the registered users
@@ -694,13 +929,26 @@ class EventController extends Controller
                     return response()->json([
                         'success' => true,
                         'message' => "User validated successfully and registered for the event: {$user->given_name} {$user->family_name}",
-                        'user' => $user
+                        'user' => $user,
+                        'validation_results' => $validationResults
                     ]);
                 } else {
+                    // Find the first failed validation check
+                    $failedCheck = null;
+                    foreach ($validationResults as $result) {
+                        if ($result['status'] === 'failed') {
+                            $failedCheck = $result;
+                            break;
+                        }
+                    }
+
+                    $failedReason = $failedCheck ? " Reason: {$failedCheck['check']} - {$failedCheck['message']}" : "";
+
                     return response()->json([
-                        'success' => true,
-                        'message' => "User validated successfully (already registered for the event): {$user->given_name} {$user->family_name}",
-                        'user' => $user
+                        'success' => false,
+                        'message' => "User validation failed. Cannot register for the event: {$user->given_name} {$user->family_name}.{$failedReason}",
+                        'user' => $user,
+                        'validation_results' => $validationResults
                     ]);
                 }
             } else {

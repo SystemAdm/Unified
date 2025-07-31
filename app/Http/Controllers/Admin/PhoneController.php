@@ -46,8 +46,8 @@ class PhoneController extends AdminController
     {
         $this->authorize(Permission::CREATE_PHONE->value);
 
-        // Get all users for the dropdown
-        $users = User::all(['id', 'name']);
+        // Get all users for the dropdown with all attributes to ensure name is computed correctly
+        $users = User::all();
 
         return Inertia::render('admin/phones/Create', [
             'users' => $users,
@@ -117,8 +117,8 @@ class PhoneController extends AdminController
             $query->withPivot(['verified_at', 'is_primary']);
         }]);
 
-        // Get all users for the dropdown
-        $users = User::all(['id', 'name']);
+        // Get all users for the dropdown with all attributes to ensure name is computed correctly
+        $users = User::all();
 
         return Inertia::render('admin/phones/Edit', [
             'phone' => $phone,

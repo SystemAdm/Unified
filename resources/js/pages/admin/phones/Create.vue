@@ -84,7 +84,7 @@ const submit = () => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem v-for="user in props.users" :key="user.id" :value="user.id.toString()">
-                                    {{ user.name }}
+                                    {{ user.name || `User #${user.id}` }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>

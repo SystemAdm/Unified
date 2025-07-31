@@ -2,7 +2,7 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, ClockIcon, MapPinIcon, OctagonMinusIcon, ShieldHalfIcon, UserPlusIcon, BetweenHorizontalStartIcon } from 'lucide-vue-next';
+import { CalendarIcon, ClockIcon, MapPinIcon, OctagonMinusIcon, ShieldHalfIcon, UserPlusIcon, BetweenHorizontalStartIcon, EyeIcon } from 'lucide-vue-next';
 
 interface Location {
     id: number;
@@ -164,7 +164,7 @@ const userMeetsAgeRequirements = (event: EventProps) => {
             :alt="event.title"
             class="h-48 w-full object-cover"
         />
-        <div class="rounded-b-lg bg-card p-6 shadow-sm h-full flex flex-col" :class="{ 'bg-red-900': event.is_cancelled || event.status === 'cancelled' }">
+        <div class="rounded-b-lg bg-card shadow-sm px-6 h-full flex flex-col" :class="{ 'bg-red-900': event.is_cancelled || event.status === 'cancelled' }">
             <div class="flex-grow">
                 <h3 class="mb-2 text-xl font-semibold">
                     <Link :href="route('events.show', { event: event.id })" class="hover:text-primary">
@@ -228,16 +228,19 @@ const userMeetsAgeRequirements = (event: EventProps) => {
                     </Link>
                 </p>
             </div>
-            <div class="mt-4 sticky bottom-0 pb-4">
+            <div class="mt-4 sticky bottom-0">
                 <div v-if="showDetailedView && !event.is_cancelled && isSignupOpen(event) && (isRestrictedToEveryone(event) || (userMeetsRoleRequirements(event) && userMeetsAgeRequirements(event)))" class="mb-2">
                     <Link :href="route('events.signup', { event: event.id })" method="post" class="w-full block">
-                        <button class="h-10 w-full rounded-md bg-green-600 px-4 py-2 text-white hover:bg-green-700 font-bold text-lg shadow-lg">
+                        <button class="h-10 w-full rounded-md bg-green-600 py-2 text-white hover:bg-green-700 font-bold text-lg shadow-lg">
                             Signup to event
                         </button>
                     </Link>
                 </div>
                 <Link :href="route('events.show', { event: event.id })" class="w-full block">
-                    <Button class="w-full">View Details</Button>
+                    <Button class="w-full">
+                        <EyeIcon class="mr-2 h-4" />
+                        View Details
+                    </Button>
                 </Link>
             </div>
         </div>

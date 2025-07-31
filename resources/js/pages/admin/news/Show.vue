@@ -62,6 +62,11 @@ const isPublished = () => {
             <div class="flex items-center justify-between">
                 <HeadingSmall :title="news.title" description="News Article Details" />
                 <div class="flex space-x-2">
+                    <Link :href="route('news.show', { news: news.id })">
+                        <Button variant="secondary" size="sm">
+                            Public View
+                        </Button>
+                    </Link>
                     <Link :href="route('admin.news.edit', { news: news.id })">
                         <Button variant="outline" size="sm">
                             <PencilIcon class="h-4 w-4" /> Edit article
@@ -151,6 +156,9 @@ const isPublished = () => {
                 </CardContent>
                 <CardFooter>
                     <div class="flex justify-end space-x-2">
+                        <Link :href="route('news.index')">
+                            <Button variant="secondary">Public Index</Button>
+                        </Link>
                         <Link :href="route('admin.news.index')">
                             <Button variant="outline"><ArrowLeftIcon /> Back to News</Button>
                         </Link>

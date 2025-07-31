@@ -122,7 +122,7 @@ const toggleRole = (roleValue: string) => {
                     <!-- Current image -->
                     <div v-if="news.featured_image" class="space-y-2">
                         <Label class="text-sm font-medium">Current Image</Label>
-                        <div class="border rounded-lg p-4 bg-gray-50">
+                        <div class="border rounded-lg p-4 ">
                             <img :src="`/storage/${news.featured_image}`" alt="Current featured image" class="max-w-xs max-h-48 rounded-md mb-2" />
                             <p class="text-sm text-gray-600">{{ news.featured_image.split('/').pop() }}</p>
                         </div>
@@ -148,7 +148,7 @@ const toggleRole = (roleValue: string) => {
                                 @click="form.selected_image = image.path; form.featured_image = null"
                             >
                                 <img :src="image.url" :alt="image.name" class="w-full h-24 object-cover" />
-                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all"></div>
+                                <div class="absolute inset-0 bg-transparent hover:bg-gray-800/50 transition-all"></div>
                                 <div v-if="form.selected_image === image.path" class="absolute top-1 right-1 bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
                                     ✓
                                 </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { UserIcon, ArrowLeftIcon } from 'lucide-vue-next';
+import { onMounted, onUnmounted, ref } from 'vue';
 
 interface User {
     id: number;
@@ -31,11 +32,28 @@ interface Event {
 interface Props {
     event: Event;
     users: User[];
-    listType: 'registered' | 'visited' | 'inside';
+    listType: 'registered' | 'attending' | 'inside';
     title: string;
 }
 
 const props = defineProps<Props>();
+const usersList = ref<User[]>(props.users);
+
+// Set up Echo channel subscription
+onMounted(() => {
+    window.Echo.channel(`event.${props.event.id}.users`)
+        .listen('.user-list-updated', (e: { event_id: number, list_type: string, users: User[] }) => {
+            // Only update the list if it's the same list type we're currently viewing
+            if (e.list_type === props.listType) {
+                usersList.value = e.users;
+            }
+        });
+});
+
+// Clean up Echo subscription when component is unmounted
+onUnmounted(() => {
+    window.Echo.leave(`event.${props.event.id}.users`);
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
@@ -58,7 +76,7 @@ const getListTypeColor = (type: string) => {
     switch (type) {
         case 'registered':
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
-        case 'visited':
+        case 'attending':
             return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
         case 'inside':
             return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
@@ -76,7 +94,7 @@ const getListTypeColor = (type: string) => {
             <div class="flex justify-between items-center">
                 <HeadingSmall
                     :title="props.title"
-                    :description="`${props.users.length} users for event: ${props.event.title}`"
+                    :description="`${usersList.length} users for event: ${props.event.title}`"
                     class="m-3"
                 />
                 <div class="flex items-center space-x-2">
@@ -87,13 +105,13 @@ const getListTypeColor = (type: string) => {
                         {{ props.listType.charAt(0).toUpperCase() + props.listType.slice(1) }}
                     </span>
                     <span class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ props.users.length }} {{ props.users.length === 1 ? 'user' : 'users' }}
+                        {{ usersList.length }} {{ usersList.length === 1 ? 'user' : 'users' }}
                     </span>
                 </div>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <div v-if="props.users.length === 0" class="p-8 text-center">
+                <div v-if="usersList.length === 0" class="p-8 text-center">
                     <UserIcon class="h-12 w-12 mx-auto text-gray-400 mb-4" />
                     <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                         No {{ props.listType }} users
@@ -122,7 +140,7 @@ const getListTypeColor = (type: string) => {
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                            <tr v-for="user in props.users" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <tr v-for="user in usersList" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-700">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="flex-shrink-0 h-10 w-10">

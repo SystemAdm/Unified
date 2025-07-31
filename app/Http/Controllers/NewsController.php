@@ -11,10 +11,11 @@ class NewsController extends Controller
     public function index()
     {
         $news = News::published()
-            ->with('author')
+            ->select('id', 'title', 'excerpt', 'content', 'author_id', 'featured_image', 'published_at', 'created_at', 'updated_at')
+            ->with('author:id,name')
             ->orderBy('published_at', 'desc')
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(12);
 
         return Inertia::render('News/Index', [
             'news' => $news
@@ -24,7 +25,8 @@ class NewsController extends Controller
     public function getLatestNews()
     {
         $news = News::published()
-            ->with('author')
+            ->select('id', 'title', 'excerpt', 'content', 'author_id', 'featured_image', 'published_at', 'created_at', 'updated_at')
+            ->with('author:id,name')
             ->orderBy('published_at', 'desc')
             ->orderBy('created_at', 'desc')
             ->limit(6)
@@ -35,7 +37,10 @@ class NewsController extends Controller
 
     public function show($id)
     {
-        $news = News::published()->with('author')->findOrFail($id);
+        $news = News::published()
+            ->select('id', 'title', 'excerpt', 'content', 'author_id', 'featured_image', 'published_at', 'created_at', 'updated_at')
+            ->with('author:id,name')
+            ->findOrFail($id);
         return Inertia::render('News/Show', [
             'news' => $news
         ]);

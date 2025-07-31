@@ -9,6 +9,7 @@ use App\Http\Controllers\GameController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\WishlistController;
 use App\Http\Middleware\YoungerThanEightTeen;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -31,23 +32,21 @@ Route::prefix('legal')->name('legal.')->group(function () {
     })->name('cookie');
 });
 
+// Wishlist routes
+Route::resource('wishlist', WishlistController::class)->only(['index', 'show']);
+
 // Games routes
-Route::resource('/games', GameController::class);
+Route::resource('games', GameController::class)->only(['index', 'show']);
 
 // News routes
-Route::prefix('news')->name('news.')->group(function () {
-    Route::get('/', [NewsController::class, 'index'])->name('index');
-    Route::get('/{news}', [NewsController::class, 'show'])->name('show');
-});
+Route::resource('news', NewsController::class)->only(['index', 'show']);
 
 // Announcement routes
-Route::prefix('announcements')->name('announcements.')->group(function () {
-    Route::get('/', [AnnouncementController::class, 'index'])->name('index');
-    Route::get('/{announcement}', [AnnouncementController::class, 'show'])->name('show');
-});
+Route::resource('announcements', AnnouncementController::class)->only(['index', 'show']);
 
 // Event routes
 Route::prefix('events')->name('events.')->group(function () {
+    // Public event routes
     Route::get('/', [EventController::class, 'index'])->name('index');
     Route::get('/{event}', [EventController::class, 'show'])->name('show');
 
@@ -60,21 +59,13 @@ Route::prefix('events')->name('events.')->group(function () {
 });
 
 // Location routes
-Route::prefix('locations')->name('locations.')->group(function () {
-    Route::get('/', [LocationController::class, 'index'])->name('index');
-    Route::get('/{location}', [LocationController::class, 'show'])->name('show');
-});
+Route::resource('locations', LocationController::class)->only(['index', 'show']);
 
 // Organization routes
-Route::prefix('organizations')->name('organizations.')->group(function () {
-    Route::get('/', [OrganizationController::class, 'index'])->name('index');
-    Route::get('/{organization}', [OrganizationController::class, 'show'])->name('show');
-});
+Route::resource('organizations', OrganizationController::class)->only(['index', 'show']);
 
 // Console routes
-Route::prefix('consoles')->name('consoles.')->group(function () {
-    Route::get('/', [ConsoleController::class, 'index'])->name('index');
-});
+Route::resource('consoles', ConsoleController::class)->only(['index']);
 
 // Contact form route
 Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
@@ -88,23 +79,3 @@ Route::middleware(['auth', 'verified', YoungerThanEightTeen::class])
 require __DIR__ . '/settings.php';
 require __DIR__ . '/admin.php';
 require __DIR__ . '/auth.php';
-
-// Debug routes - commented out for production
-// Uncomment for debugging purposes only
-/*
-Route::prefix('debug')->group(function () {
-    Route::get('/password-reset', [\App\Http\Controllers\DebugPasswordResetController::class, 'debug']);
-    Route::get('/direct-token', [\App\Http\Controllers\TestPasswordResetController::class, 'testDirectTokenCreation']);
-    Route::post('/password-reset', [\App\Http\Controllers\TestPasswordResetController::class, 'testPasswordReset']);
-    Route::get('/token', [\App\Http\Controllers\TestPasswordResetController::class, 'debugToken']);
-    Route::get('/summary', [\App\Http\Controllers\DebugSummaryController::class, 'summary']);
-    Route::get('/fix-password-reset', [\App\Http\Controllers\FixPasswordResetController::class, 'fix']);
-
-    // Test route for YoungerThanEightTeen middleware
-    Route::get('/age-check', function() {
-        // This route simulates a user born in 2009 (under 18)
-        // It will trigger the YoungerThanEightTeen middleware
-        return 'If you see this, the age check middleware did not redirect you.';
-    })->middleware(['auth', \App\Http\Middleware\YoungerThanEightTeen::class]);
-});
-*/

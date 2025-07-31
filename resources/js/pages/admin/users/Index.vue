@@ -1,17 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 
 import HeadingSmall from '@/components/HeadingSmall.vue';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
+import LaravelPaginator from '@/components/LaravelPaginator.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { PencilIcon, TrashIcon, PlusIcon, StarIcon, ShieldCheckIcon } from 'lucide-vue-next';
@@ -198,41 +191,11 @@ const breadcrumbs: BreadcrumbItem[] = [
             </div>
 
             <!-- Pagination -->
-            <div class="mt-4">
-                <Pagination :items-per-page="props.users.per_page" :total="props.users.total" :default-page="props.users.from">
-                    <PaginationContent>
-                        <a v-if="props.users.links.prev" href="#" @click.prevent="router.visit(props.users.links.prev, { preserveState: true, preserveScroll: true, only: ['users'] })">
-                            <PaginationPrevious />
-                        </a>
-
-                        <template v-for="(link, index) in props.users.links" :key="index">
-                            <!-- Skip previous and next links as they're handled separately -->
-                            <template v-if="link.label !== '&laquo; Previous' && link.label !== 'Next &raquo;'">
-                                <a v-if="!isNaN(parseInt(link.label)) && link.url" href="#" @click.prevent="router.visit(link.url, { preserveState: true, preserveScroll: true, only: ['users'] })">
-                                    <PaginationItem
-                                        :value="parseInt(link.label)"
-                                        :is-active="link.active"
-                                    >
-                                        {{ link.label }}
-                                    </PaginationItem>
-                                </a>
-                                <PaginationItem
-                                    v-else-if="!isNaN(parseInt(link.label))"
-                                    :value="parseInt(link.label)"
-                                    :is-active="link.active"
-                                >
-                                    {{ link.label }}
-                                </PaginationItem>
-                                <PaginationEllipsis v-else-if="link.label === '...'" />
-                            </template>
-                        </template>
-
-                        <a v-if="props.users.links.next" href="#" @click.prevent="router.visit(props.users.links.next, { preserveState: true, preserveScroll: true, only: ['users'] })">
-                            <PaginationNext />
-                        </a>
-                    </PaginationContent>
-                </Pagination>
-            </div>
+            <LaravelPaginator
+                v-if="props.users.data.length > 0"
+                :pagination="props.users"
+                onlyKey="users"
+            />
         </div>
     </AppLayout>
 </template>

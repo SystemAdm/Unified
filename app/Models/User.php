@@ -354,10 +354,24 @@ class User extends Authenticatable
 
     public function getNameAttribute(): string
     {
-        if (!empty($this->additional_name)) {
-            return ucwords($this->given_name . ' ' . $this->additional_name . ' ' . $this->family_name);
+        // Trim name parts to remove any leading/trailing spaces
+        $givenName = trim($this->given_name ?? '');
+        $familyName = trim($this->family_name ?? '');
+        $additionalName = trim($this->additional_name ?? '');
+
+        // Build name parts array with only non-empty parts
+        $nameParts = [];
+        if (!empty($givenName)) $nameParts[] = $givenName;
+        if (!empty($additionalName)) $nameParts[] = $additionalName;
+        if (!empty($familyName)) $nameParts[] = $familyName;
+
+        // If all name parts are empty, return empty string
+        if (empty($nameParts)) {
+            return '';
         }
-        return ucwords($this->given_name . ' ' . $this->family_name);
+
+        // Join non-empty name parts and apply case formatting
+        return mb_convert_case(implode(' ', $nameParts), MB_CASE_TITLE, 'UTF-8');
     }
 
     public function setNameAttribute(string $name): static
@@ -365,7 +379,7 @@ class User extends Authenticatable
         // Log the incoming name for debugging
         \Log::debug('User::setNameAttribute called with name: ' . $name);
 
-        $name = ucwords($name);
+        $name = mb_convert_case($name, MB_CASE_TITLE, 'UTF-8');
         $parts = explode(' ', $name);
 
         $this->attributes['given_name'] = $parts[0] ?? '';
@@ -398,17 +412,17 @@ class User extends Authenticatable
 
     public function getGivenNameAttribute($value): string
     {
-        return ucwords($value);
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
     }
 
     public function getFamilyNameAttribute($value): string
     {
-        return ucwords($value);
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
     }
 
     public function getAdditionalNameAttribute($value): ?string
     {
-        return $value ? ucwords($value) : null;
+        return $value ? mb_convert_case($value, MB_CASE_TITLE, 'UTF-8') : null;
     }
 
     /**
