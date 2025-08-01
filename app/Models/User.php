@@ -560,4 +560,13 @@ class User extends Authenticatable
         // Payment functionality has been removed
         return null;
     }
+
+    /**
+     * Get the self-hosted apps that this user manages.
+     */
+    public function managedApps(): BelongsToMany
+    {
+        return $this->belongsToMany(SelfHostedApp::class, 'self_hosted_app_user')
+            ->withTimestamps();
+    }
 }

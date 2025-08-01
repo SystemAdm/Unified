@@ -112,5 +112,6 @@ class DatabaseSeeder extends Seeder
         $this->call(NewsSeeder::class);
         $this->call(GameSeeder::class);
         $this->call(WishlistSeeder::class);
+        $this->call(SelfHostedAppSeeder::class);
     }
 }

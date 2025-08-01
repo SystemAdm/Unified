@@ -14,11 +14,12 @@ use App\Http\Controllers\Admin\OrganizationController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\PhoneController;
 use App\Http\Controllers\Admin\RoleController;
+use App\Http\Controllers\Admin\SelfHostedAppController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\WishlistController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\IsAdmin::class])->prefix('admin')->name('admin.')->group(function () {
     // Admin dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('index');
 
@@ -88,7 +89,7 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     });
 
     // Wishlist management routes
-    Route::resource('wishlists', WishlistController::class)->names([
+    Route::resource('wishlist', WishlistController::class)->names([
         'index' => 'wishlist.index',
         'create' => 'wishlist.create',
         'store' => 'wishlist.store',
@@ -97,9 +98,15 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
         'update' => 'wishlist.update',
         'destroy' => 'wishlist.destroy',
     ]);
-    Route::prefix('wishlists')->name('wishlist.')->group(function () {
+    Route::prefix('wishlist')->name('wishlist.')->group(function () {
         Route::post('{wishlist}/record-payment', [WishlistController::class, 'recordPayment'])->name('record-payment');
         Route::get('get-users', [WishlistController::class, 'getUsers'])->name('get-users');
+    });
+
+    // Self-hosted app management routes
+    Route::resource('selfhostedapp', SelfHostedAppController::class);
+    Route::prefix('selfhostedapp')->name('selfhostedapp.')->group(function () {
+        Route::get('get-users', [SelfHostedAppController::class, 'getUsers'])->name('get-users');
     });
 
     // Guardian verification routes

@@ -15,6 +15,10 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!$request->user() || !($request->user()->hasRole('admin') || $request->user()->hasRole('owner'))) {
+            abort(403, 'Unauthorized action. You must be an admin to access this area.');
+        }
+
         return $next($request);
     }
 }
