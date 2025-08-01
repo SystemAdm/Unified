@@ -34,8 +34,8 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Self-Hosted Apps', href: route('admin.selfhostedapp.index') },
-    { title: 'Add', href: route('admin.selfhostedapp.create') },
+    { title: 'Self-Hosted Apps', href: route('admin.selfhostedapps.index') },
+    { title: 'Add', href: route('admin.selfhostedapps.create') },
 ];
 
 const form = useForm({
@@ -53,7 +53,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('admin.selfhostedapp.store'), {
+    form.post(route('admin.selfhostedapps.store'), {
         onSuccess: () => {
             form.reset();
         }
@@ -210,7 +210,7 @@ const toggleManager = (userId: number) => {
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">
-                    <Link :href="route('admin.selfhostedapp.index')">
+                    <Link :href="route('admin.selfhostedapps.index')">
                         <Button type="button" variant="destructive"><BanIcon />Cancel</Button>
                     </Link>
                     <Button type="submit" :disabled="form.processing"><SaveIcon />Add Self-Hosted App</Button>

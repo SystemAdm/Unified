@@ -54,6 +54,14 @@ class Event extends Model
     ];
 
     /**
+     * Get the title attribute with first letter of each word capitalized
+     */
+    public function getTitleAttribute($value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
+    /**
      * Get the location associated with the event.
      */
     public function location()
@@ -190,23 +198,54 @@ class Event extends Model
      */
     public function getUserAttribute()
     {
-        return $this->users()->wherePivot('is_primary', true)->first();
+        return $this->users()->first();
     }
 
     public function getOrganizationAttribute()
     {
-        return $this->organizations()->wherePivot('is_primary', true)->first();
+        return $this->organizations()->first();
     }
 
     public function getOrganizerAttribute()
     {
+        // Load organizations if not already loaded
+        if (!$this->relationLoaded('organizations')) {
+            $this->load('organizations');
+        }
+
         $link = null;
-        $name = $this->organization?->name ?? $this->user?->name ?? null;
+        $name = null;
+        $organizationNames = [];
+
+        // Get primary organization or user name
+        $primaryName = $this->organization?->name ?? $this->user?->name ?? null;
+        $primaryOrgId = $this->organization?->id ?? null;
+
+        // Get all organization names, excluding the primary one to avoid duplication
+        if ($this->organizations->isNotEmpty()) {
+            foreach ($this->organizations as $organization) {
+                // Skip the primary organization to avoid duplication
+                if ($primaryOrgId && $organization->id === $primaryOrgId) {
+                    continue;
+                }
+                $organizationNames[] = $organization->name;
+            }
+        }
+
+        // If we have additional organizations, combine them with the primary name
+        if (!empty($organizationNames)) {
+            $name = $primaryName ? $primaryName . ' (' . implode(', ', $organizationNames) . ')' : implode(', ', $organizationNames);
+        } else {
+            $name = $primaryName;
+        }
+
+        // Set link to primary organizer
         $type = ($this->organization ?'/organizations':null) ?? ($this->user?'/users':null);
         $id= ($this->organization ? '/'.$this->organization->id.'/edit':null)??($this->user?'/'.$this->user->id:null);
         if ($type && $id) {
             $link = '/admin'.$type.$id;
         }
+
         return [
             'link' => $link,
             'name' => $name,

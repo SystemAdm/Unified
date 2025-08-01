@@ -33,7 +33,7 @@ Route::prefix('legal')->name('legal.')->group(function () {
 });
 
 // Wishlist routes
-Route::resource('wishlist', WishlistController::class)->only(['index', 'show']);
+Route::resource('wishlists', WishlistController::class)->only(['index', 'show']);
 
 // Games routes
 Route::resource('games', GameController::class)->only(['index', 'show']);

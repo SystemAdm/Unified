@@ -40,6 +40,14 @@ class Location extends Model
     ];
 
     /**
+     * Get the name attribute with first letter of each word capitalized
+     */
+    public function getNameAttribute($value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
+    /**
      * Get the events that are held at this location.
      */
     public function events()

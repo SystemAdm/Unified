@@ -68,7 +68,7 @@ defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Self-Hosted Apps', href: route('admin.selfhostedapp.index') },
+    { title: 'Self-Hosted Apps', href: route('admin.selfhostedapps.index') },
 ];
 
 const formatDate = (dateString: string) => {
@@ -88,7 +88,7 @@ const formatDate = (dateString: string) => {
             <div class="flex items-center justify-between">
                 <HeadingSmall title="Self-Hosted Apps" description="Manage self-hosted applications in the system" />
                 <div class="flex space-x-2">
-                    <Link :href="route('admin.selfhostedapp.create')">
+                    <Link :href="route('admin.selfhostedapps.create')">
                         <Button>
                             <PlusIcon class="mr-2 h-4 w-4" />
                             Add Self-Hosted App
@@ -147,10 +147,10 @@ const formatDate = (dateString: string) => {
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex space-x-2">
-                                    <Link :href="route('admin.selfhostedapp.show', app.id)">
+                                    <Link :href="route('admin.selfhostedapps.show', app.id)">
                                         <Button variant="secondary" size="sm"><EyeIcon class="h-4 w-4" /></Button>
                                     </Link>
-                                    <Link :href="route('admin.selfhostedapp.edit', app.id)">
+                                    <Link :href="route('admin.selfhostedapps.edit', app.id)">
                                         <Button variant="outline" size="sm"><PencilIcon class="h-4 w-4" /></Button>
                                     </Link>
                                     <AlertDialog>
@@ -171,7 +171,7 @@ const formatDate = (dateString: string) => {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel><BanIcon />Cancel</AlertDialogCancel>
-                                                <AlertDialogAction @click="router.delete(route('admin.selfhostedapp.destroy', app.id))">
+                                                <AlertDialogAction @click="router.delete(route('admin.selfhostedapps.destroy', app.id))">
                                                     <TrashIcon />Delete
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>

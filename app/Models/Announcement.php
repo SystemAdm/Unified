@@ -31,6 +31,14 @@ class Announcement extends Model
         'visible_to_role' => 'array',
     ];
 
+    /**
+     * Get the title attribute with first letter of each word capitalized
+     */
+    public function getTitleAttribute($value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
     public function isActive(): bool
     {
         $now = now();

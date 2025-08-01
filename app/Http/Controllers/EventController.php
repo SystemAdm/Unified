@@ -240,6 +240,9 @@ class EventController extends Controller
         // Remove the user from the signupped list
         $event->signupped()->detach($user->id);
 
+        // Also remove the user from the registered list
+        $event->registered()->detach($user->id);
+
         return redirect()->route('events.show', ['event' => $event->id])
             ->with('message', 'Successfully canceled your signup for the event!')
             ->with('messageType', 'success');

@@ -9,13 +9,16 @@ use App\Models\Console;
 use App\Models\Email;
 use App\Models\Event;
 use App\Models\Game;
+use App\Models\GameServer;
 use App\Models\Location;
 use App\Models\News;
 use App\Models\Organization;
-use App\Models\Permission;
+use Spatie\Permission\Models\Permission;
 use App\Models\Phone;
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
+use App\Models\SelfHostedApp;
 use App\Models\User;
+use App\Models\Wishlist;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -132,6 +135,30 @@ class DashboardController extends Controller
                 'newCount' => Email::where('created_at', '>=', now()->subWeek())->count(),
                 'indexRoute' => route('admin.emails.index'),
                 'createRoute' => route('admin.emails.create'),
+            ],
+            'wishlists' => [
+                'title' => 'Wishlists',
+                'modelType' => 'wishlists',
+                'totalCount' => Wishlist::count(),
+                'newCount' => Wishlist::where('created_at', '>=', now()->subWeek())->count(),
+                'indexRoute' => route('admin.wishlists.index'),
+                'createRoute' => route('admin.wishlists.create'),
+            ],
+            'selfhostedapps' => [
+                'title' => 'Self-Hosted Apps',
+                'modelType' => 'selfhostedapps',
+                'totalCount' => SelfHostedApp::count(),
+                'newCount' => SelfHostedApp::where('created_at', '>=', now()->subWeek())->count(),
+                'indexRoute' => route('admin.selfhostedapps.index'),
+                'createRoute' => route('admin.selfhostedapps.create'),
+            ],
+            'gameservers' => [
+                'title' => 'Game Servers',
+                'modelType' => 'gameservers',
+                'totalCount' => GameServer::count(),
+                'newCount' => GameServer::where('created_at', '>=', now()->subWeek())->count(),
+                'indexRoute' => route('admin.gameservers.index'),
+                'createRoute' => route('admin.gameservers.create'),
             ],
         ];
 

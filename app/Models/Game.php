@@ -22,4 +22,12 @@ class Game extends Model
         'is_active',
         'image',
     ];
+
+    /**
+     * Get the name attribute with first letter of each word capitalized
+     */
+    public function getNameAttribute($value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
 }

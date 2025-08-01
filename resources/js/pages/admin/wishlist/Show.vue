@@ -42,8 +42,8 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Wishlist', href: route('admin.wishlist.index') },
-    { title: props.wishlist.name, href: route('admin.wishlist.show', { wishlist: props.wishlist.id }) },
+    { title: 'Wishlist', href: route('admin.wishlists.index') },
+    { title: props.wishlist.name, href: route('admin.wishlists.show', { wishlist: props.wishlist.id }) },
 ];
 
 const formatDate = (dateString: string | null) => {
@@ -94,12 +94,12 @@ const isFullyFunded = () => {
             <div class="flex items-center justify-between">
                 <HeadingSmall :title="wishlist.name" description="Wishlist Item Details" />
                 <div class="flex space-x-2">
-                    <Link :href="route('wishlist.show', { wishlist: wishlist.id })" v-if="route().has('wishlist.show')">
+                    <Link :href="route('wishlists.show', { wishlist: wishlist.id })" v-if="route().has('wishlists.show')">
                         <Button variant="secondary" size="sm">
                             Public View
                         </Button>
                     </Link>
-                    <Link :href="route('admin.wishlist.edit', { wishlist: wishlist.id })">
+                    <Link :href="route('admin.wishlists.edit', { wishlist: wishlist.id })">
                         <Button variant="outline" size="sm">
                             <PencilIcon class="h-4 w-4" /> Edit item
                         </Button>
@@ -222,10 +222,10 @@ const isFullyFunded = () => {
                 </CardContent>
                 <CardFooter>
                     <div class="flex justify-end space-x-2">
-                        <Link :href="route('wishlist.index')" v-if="route().has('wishlist.index')">
+                        <Link :href="route('wishlists.index')" v-if="route().has('wishlists.index')">
                             <Button variant="secondary">Public Index</Button>
                         </Link>
-                        <Link :href="route('admin.wishlist.index')">
+                        <Link :href="route('admin.wishlists.index')">
                             <Button variant="outline"><ArrowLeftIcon /> Back to Wishlist</Button>
                         </Link>
                     </div>

@@ -25,8 +25,8 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Wishlist', href: route('admin.wishlist.index') },
-    { title: 'Add', href: route('admin.wishlist.create') },
+    { title: 'Wishlist', href: route('admin.wishlists.index') },
+    { title: 'Add', href: route('admin.wishlists.create') },
 ];
 
 const form = useForm({
@@ -41,7 +41,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('admin.wishlist.store'), {
+    form.post(route('admin.wishlists.store'), {
         onSuccess: () => {
             form.reset();
         }
@@ -136,7 +136,7 @@ const submit = () => {
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">
-                    <Link :href="route('admin.wishlist.index')">
+                    <Link :href="route('admin.wishlists.index')">
                         <Button type="button" variant="destructive"><BanIcon />Cancel</Button>
                     </Link>
                     <Button type="submit" :disabled="form.processing"><SaveIcon />Add Wishlist Item</Button>

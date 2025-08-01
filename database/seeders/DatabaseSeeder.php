@@ -54,20 +54,20 @@ class DatabaseSeeder extends Seeder
             'city' => 'Bærums Verk',
             'postal_code' => '1353',
             'country' => 'Norway',
-            'latitude' => '59.616667',
-            'longitude' => '10.716667',
+            'latitude' => '59.943050574436455',
+            'longitude' => '10.508006969437213',
             'description' => 'Helset Fritidssenter, ligger i første etasje på Helset Hallen, med inngang på siden av bygget.',
             'state' => 'Akershus',
             'is_active' => true,
         ]);
         $locSandvika = Location::factory()->create([
             'name' => 'Løkketangen',
-            'address' => 'Løkketange 6-14',
+            'address' => 'Løkketange 14 B',
             'city' => 'Sandvika',
             'postal_code' => '1337',
             'country' => 'Norway',
-            'latitude' => '59.616667',
-            'longitude' => '10.716667',
+            'latitude' => '59.892009875904506',
+            'longitude' => '10.521348380427746',
             'state' =>'Akershus',
             'description' => 'Ny oppussede lokaler i Sandvika 100m fra bussterminalen, åpner 2026.',
             'is_active' => false,
@@ -111,7 +111,9 @@ class DatabaseSeeder extends Seeder
         $this->call(AnnouncementSeeder::class);
         $this->call(NewsSeeder::class);
         $this->call(GameSeeder::class);
+        $this->call(GameServerSeeder::class);
         $this->call(WishlistSeeder::class);
         $this->call(SelfHostedAppSeeder::class);
+        $this->call(ConsoleSeeder::class);
     }
 }

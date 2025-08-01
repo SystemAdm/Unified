@@ -38,8 +38,8 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Self-Hosted Apps', href: route('admin.selfhostedapp.index') },
-    { title: props.app.name, href: route('admin.selfhostedapp.show', { selfhostedapp: props.app.id }) },
+    { title: 'Self-Hosted Apps', href: route('admin.selfhostedapps.index') },
+    { title: props.app.name, href: route('admin.selfhostedapps.show', { selfhostedapp: props.app.id }) },
 ];
 
 const formatDate = (dateString: string | null) => {
@@ -69,7 +69,7 @@ const getVisibilityBadgeVariant = () => {
             <div class="flex items-center justify-between">
                 <HeadingSmall :title="app.name" description="Self-Hosted App Details" />
                 <div class="flex space-x-2">
-                    <Link :href="route('admin.selfhostedapp.edit', { selfhostedapp: app.id })">
+                    <Link :href="route('admin.selfhostedapps.edit', { selfhostedapp: app.id })">
                         <Button variant="outline" size="sm">
                             <PencilIcon class="h-4 w-4" /> Edit app
                         </Button>
@@ -169,7 +169,7 @@ const getVisibilityBadgeVariant = () => {
                 </CardContent>
                 <CardFooter>
                     <div class="flex justify-end space-x-2">
-                        <Link :href="route('admin.selfhostedapp.index')">
+                        <Link :href="route('admin.selfhostedapps.index')">
                             <Button variant="outline"><ArrowLeftIcon /> Back to Self-Hosted Apps</Button>
                         </Link>
                     </div>

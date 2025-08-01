@@ -101,7 +101,7 @@ class SelfHostedAppController extends Controller
         // Attach managers
         $app->managers()->attach($managerIds);
 
-        return redirect()->route('admin.selfhostedapp.index')
+        return redirect()->route('admin.selfhostedapps.index')
             ->with('success', 'Self-hosted app created successfully.');
     }
 
@@ -190,7 +190,7 @@ class SelfHostedAppController extends Controller
         // Sync managers
         $selfhostedapp->managers()->sync($managerIds);
 
-        return redirect()->route('admin.selfhostedapp.index')
+        return redirect()->route('admin.selfhostedapps.index')
             ->with('success', 'Self-hosted app updated successfully.');
     }
 
@@ -210,7 +210,7 @@ class SelfHostedAppController extends Controller
         // Delete the app
         $selfhostedapp->delete();
 
-        return redirect()->route('admin.selfhostedapp.index')
+        return redirect()->route('admin.selfhostedapps.index')
             ->with('success', 'Self-hosted app deleted successfully.');
     }
 

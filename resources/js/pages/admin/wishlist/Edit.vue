@@ -39,8 +39,8 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Wishlist', href: route('admin.wishlist.index') },
-    { title: 'Edit', href: route('admin.wishlist.edit', props.wishlist.id) },
+    { title: 'Wishlist', href: route('admin.wishlists.index') },
+    { title: 'Edit', href: route('admin.wishlists.edit', props.wishlist.id) },
 ];
 
 const form = useForm({
@@ -55,7 +55,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route('admin.wishlist.update', props.wishlist.id), {
+    form.post(route('admin.wishlists.update', props.wishlist.id), {
         method: 'put',
         onSuccess: () => {
             form.reset();
@@ -159,7 +159,7 @@ const submit = () => {
                 </div>
 
                 <div class="flex items-center justify-end space-x-4">
-                    <Link :href="route('admin.wishlist.index')">
+                    <Link :href="route('admin.wishlists.index')">
                         <Button type="button" variant="destructive"><BanIcon />Cancel</Button>
                     </Link>
                     <Button type="submit" :disabled="form.processing"><SaveIcon />Update Wishlist Item</Button>

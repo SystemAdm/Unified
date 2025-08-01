@@ -5,6 +5,8 @@ import { formatDate } from '@/utils';
 import { Head, Link } from '@inertiajs/vue3';
 import { CalendarIcon, MapPinIcon, ShieldIcon, ShieldCheckIcon, ShieldQuestionIcon } from 'lucide-vue-next';
 import PlaceholderPattern from '../components/PlaceholderPattern.vue';
+import ToastTest from '../components/ToastTest.vue';
+import SonnerExample from '../components/SonnerExample.vue';
 import { computed } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -188,6 +190,15 @@ const filteredEvents = computed(() => {
             <!-- Message for when no events are available -->
             <div v-if="filteredEvents.length === 0" class="p-6 bg-card rounded-lg shadow-sm text-center">
                 <p class="text-muted-foreground">No upcoming events available.</p>
+            </div>
+
+            <!-- Toast Test Component -->
+            <ToastTest class="mt-4" />
+
+            <!-- Sonner Example Component -->
+            <div class="mt-4 p-4 bg-card rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold mb-4">Sonner Toast Example</h3>
+                <SonnerExample />
             </div>
             <!-- Placeholder pattern - visible to all users who can see events -->
             <div v-if="filteredEvents.length > 0" class="relative min-h-[100vh] flex-1 rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">

@@ -57,7 +57,7 @@ const formatDate = (dateString: string) => {
 
 // Functions to handle user state transitions
 const moveToAttending = (userId: number) => {
-    router.post(route('admin.events.copy-to-attending', {
+    router.post(route('admin.events.users.copy-to-attending', {
         event: props.event.id,
         user: userId
     }));
@@ -65,7 +65,7 @@ const moveToAttending = (userId: number) => {
 
 // Move user to Inside list
 const moveToInside = (userId: number) => {
-    router.post(route('admin.events.copy-to-inside', {
+    router.post(route('admin.events.users.copy-to-inside', {
         event: props.event.id,
         user: userId
     }));
@@ -73,14 +73,14 @@ const moveToInside = (userId: number) => {
 
 // Remove user from Inside list
 const removeFromInside = (userId: number) => {
-    router.delete(route('admin.events.remove-from-inside', {
+    router.delete(route('admin.events.users.remove-from-inside', {
         event: props.event.id,
         user: userId
     }));
 };
 
 const removeFromAll = (userId: number) => {
-    router.delete(route('admin.events.remove-from-all', {
+    router.delete(route('admin.events.users.remove-from-all', {
         event: props.event.id,
         user: userId
     }));

@@ -27,6 +27,14 @@ class Wishlist extends Model
     ];
 
     /**
+     * Get the name attribute with first letter of each word capitalized
+     */
+    public function getNameAttribute($value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
+    /**
      * Get the payments for this wishlist item
      */
     public function payments(): HasMany

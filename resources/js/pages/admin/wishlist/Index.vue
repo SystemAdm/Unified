@@ -58,7 +58,7 @@ defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admin', href: route('admin.index') },
-    { title: 'Wishlist', href: route('admin.wishlist.index') },
+    { title: 'Wishlist', href: route('admin.wishlists.index') },
 ];
 
 const formatDate = (dateString: string | null) => {
@@ -91,12 +91,12 @@ const isExpired = (wishlist: Wishlist) => {
             <div class="flex items-center justify-between">
                 <HeadingSmall title="Wishlist" description="Manage wishlist items in the system" />
                 <div class="flex space-x-2">
-                    <Link :href="route('wishlist.index')">
+                    <Link :href="route('wishlists.index')">
                         <Button variant="secondary">
                             Public View
                         </Button>
                     </Link>
-                    <Link :href="route('admin.wishlist.create')">
+                    <Link :href="route('admin.wishlists.create')">
                         <Button>
                             <PlusIcon class="mr-2 h-4 w-4" />
                             Add Wishlist Item
@@ -148,10 +148,10 @@ const isExpired = (wishlist: Wishlist) => {
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex space-x-2">
-                                    <Link :href="route('admin.wishlist.show', wishlist.id)">
+                                    <Link :href="route('admin.wishlists.show', wishlist.id)">
                                         <Button variant="secondary" size="sm"><EyeIcon class="h-4 w-4" /></Button>
                                     </Link>
-                                    <Link :href="route('admin.wishlist.edit', wishlist.id)">
+                                    <Link :href="route('admin.wishlists.edit', wishlist.id)">
                                         <Button variant="outline" size="sm"><PencilIcon class="h-4 w-4" /></Button>
                                     </Link>
                                     <AlertDialog>
@@ -172,7 +172,7 @@ const isExpired = (wishlist: Wishlist) => {
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel><BanIcon />Cancel</AlertDialogCancel>
-                                                <AlertDialogAction @click="router.delete(route('admin.wishlist.destroy', wishlist.id))">
+                                                <AlertDialogAction @click="router.delete(route('admin.wishlists.destroy', wishlist.id))">
                                                     <TrashIcon />Delete
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>

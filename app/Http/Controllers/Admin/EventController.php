@@ -481,6 +481,12 @@ class EventController extends Controller
         // Broadcast the updated attending users list
         event(new \App\Events\EventUserListUpdated($event, 'attending'));
 
+        // Check if the request is an Inertia request
+        if (request()->header('X-Inertia')) {
+            return redirect()->route('admin.events.users.all', ['event' => $event->id])
+                ->with('success', 'User has been marked as attending the event.');
+        }
+
         // Check if the request wants JSON response
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
@@ -545,6 +551,12 @@ class EventController extends Controller
         // Broadcast the updated inside users list
         event(new \App\Events\EventUserListUpdated($event, 'inside'));
 
+        // Check if the request is an Inertia request
+        if (request()->header('X-Inertia')) {
+            return redirect()->route('admin.events.users.all', ['event' => $event->id])
+                ->with('success', 'User has been marked as inside the event.');
+        }
+
         // Check if the request wants JSON response
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
@@ -567,7 +579,28 @@ class EventController extends Controller
 
         $event->inside()->detach($user->id);
 
-        return redirect()->route('admin.events.show', ['event' => $event->id])
+        // Refresh the event model to get the updated relationships
+        $event->refresh();
+
+        // Broadcast the updated inside users list
+        event(new \App\Events\EventUserListUpdated($event, 'inside'));
+
+        // Check if the request is an Inertia request
+        if (request()->header('X-Inertia')) {
+            return redirect()->route('admin.events.users.all', ['event' => $event->id])
+                ->with('success', 'User has been removed from the inside list.');
+        }
+
+        // Check if the request wants JSON response
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'User has been removed from the inside list.',
+                'event' => $event->load(['registered', 'attending', 'inside'])
+            ]);
+        }
+
+        return redirect()->route('admin.events.users.all', ['event' => $event->id])
             ->with('success', 'User has been removed from the inside list.');
     }
 

@@ -44,7 +44,7 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Wishlist',
-        href: '/wishlist',
+        href: '/wishlists',
     },
 ];
 
@@ -79,7 +79,7 @@ const calculateProgress = (paid: number, total: number) => {
                 <GiftIcon class="mr-3 h-8 w-8 text-muted-foreground" />
                 <h2 class="text-3xl font-bold">Wishlist</h2>
             </div>
-            <Link :href="route('admin.wishlist.index')" class="inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80">
+            <Link :href="route('admin.wishlists.index')" class="inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/80">
                 Admin
             </Link>
         </div>
@@ -120,7 +120,7 @@ const calculateProgress = (paid: number, total: number) => {
                     </div>
 
                     <div class="flex justify-between">
-                        <Link :href="route('wishlist.show', item.id)">
+                        <Link :href="route('wishlists.show', item.id)">
                             <Button>View Details</Button>
                         </Link>
                         <a v-if="item.link" :href="item.link" target="_blank" rel="noopener noreferrer" class="inline-flex items-center text-blue-500 hover:underline">

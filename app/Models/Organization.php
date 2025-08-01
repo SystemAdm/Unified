@@ -22,6 +22,14 @@ class Organization extends Tenant
     ];
 
     /**
+     * Get the name attribute with first letter of each word capitalized
+     */
+    public function getNameAttribute($value): string
+    {
+        return mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
+    /**
      * Get the users that belong to the organization.
      */
     public function users(): BelongsToMany

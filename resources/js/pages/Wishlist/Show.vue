@@ -52,11 +52,11 @@ const props = defineProps<Props>();
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Wishlist',
-        href: route('wishlist.index'),
+        href: route('wishlists.index'),
     },
     {
         title: props.wishlist.name,
-        href: route('wishlist.show', props.wishlist.id),
+        href: route('wishlists.show', props.wishlist.id),
     },
 ];
 
@@ -97,7 +97,7 @@ const calculateProgress = (paid: number, total: number) => {
         <Head :title="wishlist.name" />
 
         <div class="mb-6 flex items-center">
-            <Link :href="route('wishlist.index')" class="mr-4 inline-flex items-center text-blue-500 hover:underline">
+            <Link :href="route('wishlists.index')" class="mr-4 inline-flex items-center text-blue-500 hover:underline">
                 <ArrowLeftIcon class="mr-1 h-4 w-4" />
                 Back to Wishlist
             </Link>

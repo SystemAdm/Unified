@@ -16,8 +16,13 @@ class GameFactory extends Factory
      */
     public function definition(): array
     {
+        $consoles = ['PC', 'PlayStation', 'Xbox', 'Nintendo Switch', 'Mobile'];
+
         return [
-            //
+            'name' => fake()->unique()->words(2, true),
+            'version' => fake()->semver(),
+            'console' => fake()->randomElement($consoles),
+            'is_active' => fake()->boolean(90), // 90% chance of being active
         ];
     }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EmailController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\GameController;
+use App\Http\Controllers\Admin\GameServerController;
 use App\Http\Controllers\Admin\GuardianVerificationController;
 use App\Http\Controllers\Admin\LocationController;
 use App\Http\Controllers\Admin\NewsController;
@@ -25,6 +26,8 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\IsAdmin::class])->pr
 
     // Basic resource management routes
     Route::resource('games', GameController::class);
+    Route::resource('gameservers', GameServerController::class);
+    Route::post('gameservers/{gameserver}/check-status', [GameServerController::class, 'checkStatus'])->name('gameservers.check-status');
     Route::resource('consoles', ConsoleController::class);
     Route::resource('banners', BannerController::class);
     Route::resource('announcements', AnnouncementController::class);
@@ -89,23 +92,23 @@ Route::middleware(['auth', 'verified', \App\Http\Middleware\IsAdmin::class])->pr
     });
 
     // Wishlist management routes
-    Route::resource('wishlist', WishlistController::class)->names([
-        'index' => 'wishlist.index',
-        'create' => 'wishlist.create',
-        'store' => 'wishlist.store',
-        'show' => 'wishlist.show',
-        'edit' => 'wishlist.edit',
-        'update' => 'wishlist.update',
-        'destroy' => 'wishlist.destroy',
+    Route::resource('wishlists', WishlistController::class)->names([
+        'index' => 'wishlists.index',
+        'create' => 'wishlists.create',
+        'store' => 'wishlists.store',
+        'show' => 'wishlists.show',
+        'edit' => 'wishlists.edit',
+        'update' => 'wishlists.update',
+        'destroy' => 'wishlists.destroy',
     ]);
-    Route::prefix('wishlist')->name('wishlist.')->group(function () {
+    Route::prefix('wishlists')->name('wishlists.')->group(function () {
         Route::post('{wishlist}/record-payment', [WishlistController::class, 'recordPayment'])->name('record-payment');
         Route::get('get-users', [WishlistController::class, 'getUsers'])->name('get-users');
     });
 
     // Self-hosted app management routes
-    Route::resource('selfhostedapp', SelfHostedAppController::class);
-    Route::prefix('selfhostedapp')->name('selfhostedapp.')->group(function () {
+    Route::resource('selfhostedapps', SelfHostedAppController::class);
+    Route::prefix('selfhostedapps')->name('selfhostedapps.')->group(function () {
         Route::get('get-users', [SelfHostedAppController::class, 'getUsers'])->name('get-users');
     });
 
