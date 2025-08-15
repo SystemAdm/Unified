@@ -158,13 +158,13 @@ const userMeetsAgeRequirements = (event: EventProps) => {
 </script>
 
 <template>
-    <Card class="overflow-hidden h-full">
+    <Card class="overflow-hidden h-full" :class="{ 'bg-red-900': event.is_cancelled || event.status === 'cancelled' }">
         <img
             :src="`https://placehold.co/300x200/0f0f0f/ffffff?text=${encodeURIComponent(event.title)}`"
             :alt="event.title"
             class="h-48 w-full object-cover"
         />
-        <div class="rounded-b-lg bg-card shadow-sm px-6 h-full flex flex-col" :class="{ 'bg-red-900': event.is_cancelled || event.status === 'cancelled' }">
+        <div class="rounded-b-lg shadow-sm px-6 h-full flex flex-col">
             <div class="flex-grow">
                 <h3 class="mb-2 text-xl font-semibold">
                     <Link :href="route('events.show', { event: event.id })" class="hover:text-primary">

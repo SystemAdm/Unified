@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PencilIcon, ArrowLeftIcon } from 'lucide-vue-next';
+import BannerTypeBadge from '@/components/BannerTypeBadge.vue';
+import { formatDate } from '@/utils';
 
 interface Banner {
     id: number;
@@ -36,15 +38,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: props.banner.title, href: route('admin.banners.show', { banner: props.banner.id }) },
 ];
 
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-};
+// Using standardized date format
 
 const isActive = () => {
     const now = new Date();
@@ -53,17 +47,6 @@ const isActive = () => {
     return props.banner.activating && from <= now && to >= now;
 };
 
-const getTypeColor = (type: string) => {
-    switch (type) {
-        case 'danger': return 'bg-red-100 text-red-800';
-        case 'warning': return 'bg-yellow-100 text-yellow-800';
-        case 'info': return 'bg-blue-100 text-blue-800';
-        case 'primary': return 'bg-green-100 text-green-800';
-        case 'secondary':
-        case 'default':
-        default: return 'bg-gray-100 text-gray-800';
-    }
-};
 </script>
 
 <template>
@@ -100,9 +83,7 @@ const getTypeColor = (type: string) => {
 
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Type</h3>
-                            <Badge :class="getTypeColor(banner.type)" class="mt-1">
-                                {{ banner.type }}
-                            </Badge>
+                            <BannerTypeBadge :type="banner.type" class="mt-1" />
                         </div>
 
                         <div>
@@ -114,12 +95,12 @@ const getTypeColor = (type: string) => {
 
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">From Date & Time</h3>
-                            <p class="mt-1">{{ formatDate(banner.from_datetime) }}</p>
+                            <p class="mt-1">{{ formatDate(banner.from_datetime, 'm') }}</p>
                         </div>
 
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">To Date & Time</h3>
-                            <p class="mt-1">{{ formatDate(banner.to_datetime) }}</p>
+                            <p class="mt-1">{{ formatDate(banner.to_datetime, 'm') }}</p>
                         </div>
 
                         <div>
@@ -173,12 +154,12 @@ const getTypeColor = (type: string) => {
 
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Created At</h3>
-                            <p class="mt-1">{{ formatDate(banner.created_at) }}</p>
+                            <p class="mt-1">{{ formatDate(banner.created_at, 'd') }}</p>
                         </div>
 
                         <div>
                             <h3 class="text-sm font-medium text-gray-500">Last Updated</h3>
-                            <p class="mt-1">{{ formatDate(banner.updated_at) }}</p>
+                            <p class="mt-1">{{ formatDate(banner.updated_at, 'd') }}</p>
                         </div>
                     </div>
                 </CardContent>

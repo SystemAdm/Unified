@@ -62,7 +62,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
         <!-- Events list -->
         <div v-if="props.events.data.length === 0" class="p-4 text-center text-gray-500">No events found.</div>
-        <div v-else class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 content-between">
+        <div v-else class="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3 content-between">
             <EventCard
                 v-for="event in props.events.data"
                 :key="event.id"

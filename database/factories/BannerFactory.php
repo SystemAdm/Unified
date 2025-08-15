@@ -25,6 +25,7 @@ class BannerFactory extends Factory
 
         return [
             'is_published' => fake()->boolean(70), // 70% chance of being published
+            'is_recurring' => false, // Default to non-recurring
             'from_datetime' => $fromDateTime,
             'to_datetime' => $toDateTime,
             'title' => fake()->sentence(4),
@@ -80,6 +81,55 @@ class BannerFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'type' => $type->value,
+        ]);
+    }
+
+    /**
+     * Indicate that the banner should be recurring annually.
+     */
+    public function recurring(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_recurring' => true,
+        ]);
+    }
+
+    /**
+     * Create a banner for today (starts today).
+     */
+    public function forToday(): static
+    {
+        $today = now()->startOfDay();
+        return $this->state(fn (array $attributes) => [
+            'is_published' => true,
+            'from_datetime' => $today,
+            'to_datetime' => $today->copy()->addDays(3),
+        ]);
+    }
+
+    /**
+     * Create a banner for tomorrow (starts tomorrow).
+     */
+    public function forTomorrow(): static
+    {
+        $tomorrow = now()->addDay()->startOfDay();
+        return $this->state(fn (array $attributes) => [
+            'is_published' => true,
+            'from_datetime' => $tomorrow,
+            'to_datetime' => $tomorrow->copy()->addDays(3),
+        ]);
+    }
+
+    /**
+     * Create a banner for yesterday (started yesterday).
+     */
+    public function forYesterday(): static
+    {
+        $yesterday = now()->subDay()->startOfDay();
+        return $this->state(fn (array $attributes) => [
+            'is_published' => true,
+            'from_datetime' => $yesterday,
+            'to_datetime' => $yesterday->copy()->addDays(3),
         ]);
     }
 }

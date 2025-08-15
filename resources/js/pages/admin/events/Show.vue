@@ -53,9 +53,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: props.event.title, href: route('admin.events.show', { event: props.event.id }) },
 ];
 
-// Format date for display
+// Format date for display using standardized format
 const formatEventDate = (date: string) => {
-    return formatDate(date, 'MMM D, YYYY h:mm A');
+    return formatDate(date, 'f');
 };
 
 const getStatusClass = (status: string) => {

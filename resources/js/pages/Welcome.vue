@@ -64,7 +64,9 @@ defineProps<{
         to_datetime: string;
         link_norwegian: string | null;
         link_english: string | null;
-        activating: boolean;
+        is_published: boolean;
+        is_recurring: boolean;
+        relative_day: string | null;
     }[];
     announcements: {
         id: number;
@@ -162,6 +164,9 @@ const membershipTiers = ref([
                             }" />
                             <span class="font-medium">{{ banner.title }}:</span>
                             <span>{{ banner.description }}</span>
+                            <div v-if="banner.relative_day" class="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-primary/20 text-primary">
+                                {{ banner.relative_day }}
+                            </div>
                             <div v-if="banner.link_norwegian || banner.link_english" class="ml-2">
                                 <a v-if="banner.link_norwegian" :href="banner.link_norwegian" target="_blank" class="text-primary hover:underline mr-2">
                                     Les mer (NO)

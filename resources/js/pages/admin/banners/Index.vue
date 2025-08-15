@@ -18,6 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import BannerTypeBadge from '@/components/BannerTypeBadge.vue';
+import { formatDate } from '@/utils';
 
 interface Banner {
     id: number;
@@ -64,15 +66,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Banners', href: route('admin.banners.index') },
 ];
 
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-};
+// Using standardized date format for banners
 
 const isActive = (banner: Banner) => {
     const now = new Date();
@@ -110,7 +104,12 @@ const isActive = (banner: Banner) => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow v-for="banner in banners.data" :key="banner.id">
+                        <TableRow
+                            v-for="banner in banners.data"
+                            :key="banner.id"
+                            class="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                            @click="router.visit(route('admin.banners.show', banner.id))"
+                        >
                             <TableCell class="px-6 py-4">
                                 <div>
                                     <div class="font-medium">{{ banner.title }}</div>
@@ -118,22 +117,13 @@ const isActive = (banner: Banner) => {
                                 </div>
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                      :class="{
-                                          'bg-red-100 text-red-800': banner.type === 'danger',
-                                          'bg-yellow-100 text-yellow-800': banner.type === 'warning',
-                                          'bg-blue-100 text-blue-800': banner.type === 'info',
-                                          'bg-green-100 text-green-800': banner.type === 'primary',
-                                          'bg-gray-100 text-gray-800': banner.type === 'secondary' || banner.type === 'default'
-                                      }">
-                                    {{ banner.type }}
-                                </span>
+                                <BannerTypeBadge :type="banner.type" />
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap text-sm">
-                                {{ formatDate(banner.from_datetime) }}
+                                {{ formatDate(banner.from_datetime, 'm') }}
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap text-sm">
-                                {{ formatDate(banner.to_datetime) }}
+                                {{ formatDate(banner.to_datetime, 'm') }}
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap">
                                 <span :class="isActive(banner) ? 'text-green-600' : 'text-red-600'">
@@ -142,10 +132,10 @@ const isActive = (banner: Banner) => {
                             </TableCell>
                             <TableCell class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex space-x-2">
-                                    <Link :href="route('admin.banners.show', banner.id)">
+                                    <Link :href="route('admin.banners.show', banner.id)" @click.stop>
                                         <Button variant="secondary" size="sm"><EyeIcon class="h-4 w-4" /></Button>
                                     </Link>
-                                    <Link :href="route('admin.banners.edit', banner.id)">
+                                    <Link :href="route('admin.banners.edit', banner.id)" @click.stop>
                                         <Button variant="outline" size="sm"><PencilIcon class="h-4 w-4" /></Button>
                                     </Link>
                                     <AlertDialog>
@@ -153,6 +143,7 @@ const isActive = (banner: Banner) => {
                                             <Button
                                                 variant="destructive"
                                                 size="sm"
+                                                @click.stop
                                             >
                                                 <TrashIcon class="h-4 w-4" />
                                             </Button>

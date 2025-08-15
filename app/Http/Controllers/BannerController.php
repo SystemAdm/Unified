@@ -9,23 +9,37 @@ class BannerController extends Controller
 {
     public function index()
     {
-        $banners = Banner::where('activating', true)
-            ->where('from_datetime', '<=', now())
-            ->where('to_datetime', '>=', now())
-            ->orderBy('from_datetime', 'desc')
-            ->get();
+        $banners = Banner::where('is_published', true)
+            ->get()
+            ->filter(function ($banner) {
+                return $banner->isActive();
+            })
+            ->sortByDesc('from_datetime')
+            ->values();
+
+        // Add relative day labels to banners
+        $banners->each(function ($banner) {
+            $banner->relative_day = $banner->getRelativeDayLabel();
+        });
 
         return response()->json($banners);
     }
 
     public function getActiveBanners()
     {
-        $banners = Banner::where('activating', true)
-            ->where('from_datetime', '<=', now())
-            ->where('to_datetime', '>=', now())
-            ->orderBy('from_datetime', 'desc')
-            ->limit(5)
-            ->get();
+        $banners = Banner::where('is_published', true)
+            ->get()
+            ->filter(function ($banner) {
+                return $banner->isActive();
+            })
+            ->sortByDesc('from_datetime')
+            ->take(5)
+            ->values();
+
+        // Add relative day labels to banners
+        $banners->each(function ($banner) {
+            $banner->relative_day = $banner->getRelativeDayLabel();
+        });
 
         return response()->json($banners);
     }

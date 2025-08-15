@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // These fields are already added in the create_game_servers_table migration
-        // No need to add them again
+        Schema::table('banners', function (Blueprint $table) {
+            $table->boolean('is_recurring')->default(false)->after('is_published');
+        });
     }
 
     /**
@@ -20,7 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Since we're not adding these fields in the up() method,
-        // we don't need to drop them in the down() method
+        Schema::table('banners', function (Blueprint $table) {
+            $table->dropColumn('is_recurring');
+        });
     }
 };
