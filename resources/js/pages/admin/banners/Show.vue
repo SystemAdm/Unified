@@ -17,7 +17,10 @@ interface Banner {
     type: string;
     from_datetime: string;
     to_datetime: string;
-    activating: boolean;
+    is_published: boolean;
+    is_recurring?: boolean;
+    is_active?: boolean;
+    relative_day?: string | null;
     visible_to_access: string[] | null;
     visible_to_role: string[] | null;
     link_norwegian: string | null;
@@ -41,10 +44,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 // Using standardized date format
 
 const isActive = () => {
+    const banner: any = props.banner as any;
+    if (typeof banner.is_active !== 'undefined') {
+        return !!banner.is_active;
+    }
     const now = new Date();
     const from = new Date(props.banner.from_datetime);
     const to = new Date(props.banner.to_datetime);
-    return props.banner.activating && from <= now && to >= now;
+    return (props.banner as any).is_published && from <= now && to >= now;
 };
 
 </script>
@@ -104,9 +111,21 @@ const isActive = () => {
                         </div>
 
                         <div>
-                            <h3 class="text-sm font-medium text-gray-500">Activating</h3>
-                            <p class="mt-1" :class="banner.activating ? 'text-green-600' : 'text-red-600'">
-                                {{ banner.activating ? 'Yes' : 'No' }}
+                            <h3 class="text-sm font-medium text-gray-500">Published</h3>
+                            <p class="mt-1" :class="banner.is_published ? 'text-green-600' : 'text-red-600'">
+                                {{ banner.is_published ? 'Yes' : 'No' }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-sm font-medium text-gray-500">Recurring</h3>
+                            <p class="mt-1">{{ (banner as any).is_recurring ? 'Yes' : 'No' }}</p>
+                        </div>
+
+                        <div v-if="(banner as any).relative_day">
+                            <h3 class="text-sm font-medium text-gray-500">Relative Day</h3>
+                            <p class="mt-1">
+                                <Badge variant="secondary">{{ (banner as any).relative_day }}</Badge>
                             </p>
                         </div>
 

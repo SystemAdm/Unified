@@ -31,12 +31,26 @@ class DashboardController extends Controller
      */
     public function index()
     {
+        // Helper closures to derive active/inactive counts where applicable
+        $publishedCount = fn($query) => (clone $query)->where('is_published', true)->count();
+        $currentlyActiveBanners = function () {
+            // Compute using model logic for accuracy across recurring ranges
+            return Banner::where('is_published', true)->get()->filter(fn($b) => $b->isActive())->count();
+        };
+        $currentlyActiveAnnouncements = function () {
+            return Announcement::where('is_published', true)
+                ->where('from_datetime', '<=', now())
+                ->where('to_datetime', '>=', now())
+                ->count();
+        };
+
         $modelData = [
             'users' => [
                 'title' => 'Users',
                 'modelType' => 'users',
                 'totalCount' => User::count(),
                 'newCount' => User::where('created_at', '>=', now()->subWeek())->count(),
+                // Users don't have a clear active/inactive flag; omit these counts
                 'indexRoute' => route('admin.users.index'),
                 'createRoute' => route('admin.users.create'),
             ],
@@ -45,6 +59,8 @@ class DashboardController extends Controller
                 'modelType' => 'events',
                 'totalCount' => Event::count(),
                 'newCount' => Event::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => Event::where('status', 'published')->count(),
+                'inactiveCount' => Event::where('status', '!=', 'published')->count(),
                 'indexRoute' => route('admin.events.index'),
                 'createRoute' => route('admin.events.create'),
             ],
@@ -61,6 +77,8 @@ class DashboardController extends Controller
                 'modelType' => 'news',
                 'totalCount' => News::count(),
                 'newCount' => News::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => News::published()->count(),
+                'inactiveCount' => News::count() - News::published()->count(),
                 'indexRoute' => route('admin.news.index'),
                 'createRoute' => route('admin.news.create'),
             ],
@@ -69,6 +87,8 @@ class DashboardController extends Controller
                 'modelType' => 'banners',
                 'totalCount' => Banner::count(),
                 'newCount' => Banner::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => $currentlyActiveBanners(),
+                'inactiveCount' => Banner::count() - $currentlyActiveBanners(),
                 'indexRoute' => route('admin.banners.index'),
                 'createRoute' => route('admin.banners.create'),
             ],
@@ -77,6 +97,8 @@ class DashboardController extends Controller
                 'modelType' => 'announcements',
                 'totalCount' => Announcement::count(),
                 'newCount' => Announcement::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => $currentlyActiveAnnouncements(),
+                'inactiveCount' => Announcement::count() - $currentlyActiveAnnouncements(),
                 'indexRoute' => route('admin.announcements.index'),
                 'createRoute' => route('admin.announcements.create'),
             ],
@@ -85,6 +107,8 @@ class DashboardController extends Controller
                 'modelType' => 'games',
                 'totalCount' => Game::count(),
                 'newCount' => Game::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => Game::where('is_active', true)->count(),
+                'inactiveCount' => Game::where('is_active', false)->count(),
                 'indexRoute' => route('admin.games.index'),
                 'createRoute' => route('admin.games.create'),
             ],
@@ -93,6 +117,8 @@ class DashboardController extends Controller
                 'modelType' => 'consoles',
                 'totalCount' => Console::count(),
                 'newCount' => Console::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => Console::where('is_active', true)->count(),
+                'inactiveCount' => Console::where('is_active', false)->count(),
                 'indexRoute' => route('admin.consoles.index'),
                 'createRoute' => route('admin.consoles.create'),
             ],
@@ -101,6 +127,8 @@ class DashboardController extends Controller
                 'modelType' => 'locations',
                 'totalCount' => Location::count(),
                 'newCount' => Location::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => Location::where('is_active', true)->count(),
+                'inactiveCount' => Location::where('is_active', false)->count(),
                 'indexRoute' => route('admin.locations.index'),
                 'createRoute' => route('admin.locations.create'),
             ],
@@ -149,6 +177,8 @@ class DashboardController extends Controller
                 'modelType' => 'selfhostedapps',
                 'totalCount' => SelfHostedApp::count(),
                 'newCount' => SelfHostedApp::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => SelfHostedApp::where('status', 'published')->count(),
+                'inactiveCount' => SelfHostedApp::where('status', '!=', 'published')->count(),
                 'indexRoute' => route('admin.selfhostedapps.index'),
                 'createRoute' => route('admin.selfhostedapps.create'),
             ],
@@ -157,6 +187,8 @@ class DashboardController extends Controller
                 'modelType' => 'gameservers',
                 'totalCount' => GameServer::count(),
                 'newCount' => GameServer::where('created_at', '>=', now()->subWeek())->count(),
+                'activeCount' => GameServer::where('is_active', true)->count(),
+                'inactiveCount' => GameServer::where('is_active', false)->count(),
                 'indexRoute' => route('admin.gameservers.index'),
                 'createRoute' => route('admin.gameservers.create'),
             ],

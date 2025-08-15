@@ -47,6 +47,7 @@ class BannerController extends Controller
             'from_datetime' => 'required|date',
             'to_datetime' => 'required|date|after:from_datetime',
             'is_published' => 'boolean',
+            'is_recurring' => 'boolean',
             'visible_to_access' => 'nullable|array',
             'visible_to_role' => 'nullable|array',
             'link_norwegian' => 'nullable|url|max:255',
@@ -55,6 +56,8 @@ class BannerController extends Controller
 
         // Ensure is_published defaults to false if not provided
         $validated['is_published'] = $validated['is_published'] ?? false;
+        // Ensure is_recurring defaults to false if not provided
+        $validated['is_recurring'] = $validated['is_recurring'] ?? false;
 
         Banner::create($validated);
 
@@ -103,14 +106,16 @@ class BannerController extends Controller
             'from_datetime' => 'required|date',
             'to_datetime' => 'required|date|after:from_datetime',
             'is_published' => 'boolean',
+            'is_recurring' => 'boolean',
             'visible_to_access' => 'nullable|array',
             'visible_to_role' => 'nullable|array',
             'link_norwegian' => 'nullable|url|max:255',
             'link_english' => 'nullable|url|max:255',
         ]);
 
-        // Ensure is_published defaults to current value if not provided
+        // Ensure defaults to current values if not provided
         $validated['is_published'] = $validated['is_published'] ?? $banner->is_published;
+        $validated['is_recurring'] = $validated['is_recurring'] ?? $banner->is_recurring;
 
         $banner->update($validated);
 

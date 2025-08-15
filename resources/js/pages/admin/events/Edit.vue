@@ -128,9 +128,9 @@ const determineSignupEndOption = () => {
 const signupStartOption = ref(determineSignupStartOption());
 const signupEndOption = ref(determineSignupEndOption());
 
-// Initialize selected user and organization IDs from event data
-const selectedUserIds = ref<number[]>(props.event.users.map(user => user.id));
-const selectedOrgIds = ref<number[]>(props.event.organizations.map(org => org.id));
+// Initialize selected user and organization IDs from event data (ensure numeric IDs)
+const selectedUserIds = ref<number[]>(props.event.users.map(user => Number(user.id)));
+const selectedOrgIds = ref<number[]>(props.event.organizations.map(org => Number(org.id)));
 
 const form = useForm({
     title: props.event.title,
@@ -140,11 +140,11 @@ const form = useForm({
     location_id: props.event.location_id,
     status: props.event.status,
     has_signup: props.event.has_signup,
-    signup_start_date: <date|null> formatDateForInput(props.event.signup_start_date),
-    signup_end_date: <date|null> formatDateForInput(props.event.signup_end_date),
+    signup_start_date: formatDateForInput(props.event.signup_start_date),
+    signup_end_date: formatDateForInput(props.event.signup_end_date),
     seats: props.event.seats,
-    min_age: <int> props.event.min_age,
-    max_age: <int> props.event.max_age,
+    min_age: props.event.min_age,
+    max_age: props.event.max_age,
     class_restriction: props.event.class_restriction || '',
     restriction: props.event.restriction,
     user_ids: selectedUserIds.value,
@@ -187,7 +187,9 @@ const toggleOrganization = (orgId: number) => {
     } else {
         selectedOrgIds.value.splice(index, 1);
     }
+    console.log(selectedOrgIds.value);
     form.organization_ids = selectedOrgIds.value;
+    console.log(form.organization_ids);
 };
 
 const submit = () => {
@@ -206,8 +208,8 @@ const submit = () => {
         }
     } else {
         // If no signup, clear signup dates
-        form.signup_start_date = null;
-        form.signup_end_date = null;
+        form.signup_start_date = '';
+        form.signup_end_date = '';
     }
 
     form.put(route('admin.events.update', { event: props.event.id }), {
@@ -277,7 +279,7 @@ const submit = () => {
                 <!-- Location Selection -->
                 <div class="space-y-2">
                     <Label for="location_id">Location</Label>
-                    <Select v-model="form.location_id">
+                    <Select :model-value="form.location_id" @update:model-value="(value) => form.location_id = (value === null ? null : Number(value))">
                         <SelectTrigger>
                             <SelectValue placeholder="Select location" />
                         </SelectTrigger>
@@ -298,7 +300,7 @@ const submit = () => {
                 <!-- Status -->
                 <div class="space-y-2">
                     <Label for="status">Status</Label>
-                    <Select v-model="form.status">
+                    <Select :model-value="form.status" @update:model-value="(value) => form.status = String(value)">
                         <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -383,7 +385,7 @@ const submit = () => {
                         <!-- Seats Configuration -->
                         <div class="space-y-2">
                             <Label for="seats">Number of Seats</Label>
-                            <Select v-model="form.seats">
+                            <Select :model-value="form.seats" @update:model-value="(value) => form.seats = Number(value)">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select seats availability" />
                                 </SelectTrigger>
@@ -413,8 +415,8 @@ const submit = () => {
                             <div v-for="user in props.users" :key="user.id" class="flex items-center space-x-2">
                                 <Checkbox
                                     :id="'user-' + user.id"
-                                    :checked="selectedUserIds.includes(user.id)"
-                                    @update:checked="toggleUser(user.id)"
+                                    :checked="selectedUserIds.includes(Number(user.id))"
+                                    @update:checked="() => toggleUser(Number(user.id))"
                                 />
                                 <Label :for="'user-' + user.id">{{ user.name }}</Label>
                             </div>
@@ -429,8 +431,8 @@ const submit = () => {
                             <div v-for="org in props.organizations" :key="org.id" class="flex items-center space-x-2">
                                 <Checkbox
                                     :id="'org-' + org.id"
-                                    :checked="selectedOrgIds.includes(org.id)"
-                                    @update:checked="toggleOrganization(org.id)"
+                                    :checked="selectedOrgIds.includes(Number(org.id))"
+                                    @update:checked="() => toggleOrganization(Number(org.id))"
                                 />
                                 <Label :for="'org-' + org.id">{{ org.name }}</Label>
                             </div>
@@ -446,7 +448,7 @@ const submit = () => {
                     <!-- Role Restriction -->
                     <div class="space-y-2">
                         <Label for="restriction">Role Restriction</Label>
-                        <Select v-model="form.restriction">
+                        <Select :model-value="form.restriction" @update:model-value="(value) => form.restriction = String(value)">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select restriction" />
                             </SelectTrigger>
@@ -477,7 +479,8 @@ const submit = () => {
                             <Label for="min_age">Minimum Age</Label>
                             <Input
                                 id="min_age"
-                                v-model="form.min_age"
+                                :model-value="form.min_age ?? ''"
+                                @update:model-value="(v) => form.min_age = (v === '' || v === null ? null : Number(v))"
                                 type="number"
                                 min="0"
                                 placeholder="No minimum"
@@ -489,7 +492,8 @@ const submit = () => {
                             <Label for="max_age">Maximum Age</Label>
                             <Input
                                 id="max_age"
-                                v-model="form.max_age"
+                                :model-value="form.max_age ?? ''"
+                                @update:model-value="(v) => form.max_age = (v === '' || v === null ? null : Number(v))"
                                 type="number"
                                 min="0"
                                 placeholder="No maximum"

@@ -236,7 +236,7 @@ const toggleFilters = () => {
                         <!-- Location -->
                         <div class="space-y-2">
                             <Label for="location_id">Location</Label>
-                            <Select v-model="form.location_id">
+                            <Select :model-value="form.location_id" @update:model-value="(value) => form.location_id = value">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select location" />
                                 </SelectTrigger>
@@ -256,7 +256,7 @@ const toggleFilters = () => {
                         <!-- Status -->
                         <div class="space-y-2">
                             <Label for="status">Status</Label>
-                            <Select v-model="form.status">
+                            <Select :model-value="form.status" @update:model-value="(value) => form.status = value">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select status" />
                                 </SelectTrigger>
@@ -276,7 +276,7 @@ const toggleFilters = () => {
                         <!-- Organizer Type -->
                         <div class="space-y-2">
                             <Label for="organizer_type">Organizer Type</Label>
-                            <Select v-model="form.organizer_type">
+                            <Select :model-value="form.organizer_type" @update:model-value="(value) => form.organizer_type = value">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select organizer type" />
                                 </SelectTrigger>
@@ -291,7 +291,7 @@ const toggleFilters = () => {
                         <!-- Organizer -->
                         <div class="space-y-2">
                             <Label for="organizer_id">Organizer</Label>
-                            <Select v-model="form.organizer_id" :disabled="!form.organizer_type">
+                            <Select :model-value="form.organizer_id" @update:model-value="(value) => form.organizer_id = value" :disabled="!form.organizer_type">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select organizer" />
                                 </SelectTrigger>
@@ -322,7 +322,7 @@ const toggleFilters = () => {
                         <!-- Sort Field -->
                         <div class="space-y-2">
                             <Label for="sort_field">Sort By</Label>
-                            <Select v-model="form.sort_field">
+                            <Select :model-value="form.sort_field" @update:model-value="(value) => form.sort_field = value">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Sort by" />
                                 </SelectTrigger>
@@ -341,7 +341,7 @@ const toggleFilters = () => {
                         <!-- Sort Direction -->
                         <div class="space-y-2">
                             <Label for="sort_direction">Sort Direction</Label>
-                            <Select v-model="form.sort_direction">
+                            <Select :model-value="form.sort_direction" @update:model-value="(value) => form.sort_direction = value">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Sort direction" />
                                 </SelectTrigger>

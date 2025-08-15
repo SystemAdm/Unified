@@ -33,7 +33,7 @@ class Event extends Model
         'cancellation_reason',
         'status',
     ];
-    protected $appends = [];
+    protected $appends = ['organizer'];
 
     /**
      * The attributes that should be cast.
@@ -180,7 +180,7 @@ class Event extends Model
      */
     public function hasAvailableSeats()
     {
-        if ($this->seats === null) {
+        if ($this->seats === null || $this->seats < 0) {
             return true; // Unlimited seats
         }
 
@@ -198,52 +198,58 @@ class Event extends Model
      */
     public function getUserAttribute()
     {
+        // Prefer already-loaded relation to avoid extra queries
+        if ($this->relationLoaded('users')) {
+            return $this->getRelation('users')->first();
+        }
         return $this->users()->first();
     }
 
     public function getOrganizationAttribute()
     {
+        // Prefer already-loaded relation to avoid extra queries
+        if ($this->relationLoaded('organizations')) {
+            return $this->getRelation('organizations')->first();
+        }
         return $this->organizations()->first();
     }
 
     public function getOrganizerAttribute()
     {
-        // Load organizations if not already loaded
-        if (!$this->relationLoaded('organizations')) {
-            $this->load('organizations');
+        // Ensure both relations are loaded to avoid N+1 issues
+        if (!$this->relationLoaded('organizations') || !$this->relationLoaded('users')) {
+            $this->loadMissing(['organizations', 'users']);
         }
 
         $link = null;
         $name = null;
-        $organizationNames = [];
 
-        // Get primary organization or user name
-        $primaryName = $this->organization?->name ?? $this->user?->name ?? null;
-        $primaryOrgId = $this->organization?->id ?? null;
+        // Collect all names
+        $organizationNames = $this->organizations?->pluck('name')->filter()->values()->all() ?? [];
+        $userNames = $this->users?->pluck('name')->filter()->values()->all() ?? [];
 
-        // Get all organization names, excluding the primary one to avoid duplication
-        if ($this->organizations->isNotEmpty()) {
-            foreach ($this->organizations as $organization) {
-                // Skip the primary organization to avoid duplication
-                if ($primaryOrgId && $organization->id === $primaryOrgId) {
-                    continue;
-                }
-                $organizationNames[] = $organization->name;
-            }
-        }
-
-        // If we have additional organizations, combine them with the primary name
-        if (!empty($organizationNames)) {
-            $name = $primaryName ? $primaryName . ' (' . implode(', ', $organizationNames) . ')' : implode(', ', $organizationNames);
+        // Build display name: organizations first, then users in parentheses if both exist
+        if (!empty($organizationNames) && !empty($userNames)) {
+            $name = implode(', ', $organizationNames) . ' (' . implode(', ', $userNames) . ')';
+        } elseif (!empty($organizationNames)) {
+            $name = implode(', ', $organizationNames);
+        } elseif (!empty($userNames)) {
+            $name = implode(', ', $userNames);
         } else {
-            $name = $primaryName;
+            $name = null;
         }
 
-        // Set link to primary organizer
-        $type = ($this->organization ?'/organizations':null) ?? ($this->user?'/users':null);
-        $id= ($this->organization ? '/'.$this->organization->id.'/edit':null)??($this->user?'/'.$this->user->id:null);
-        if ($type && $id) {
-            $link = '/admin'.$type.$id;
+        // Set link to the first organization if present; otherwise first user
+        if (!empty($organizationNames) && $this->organizations->isNotEmpty()) {
+            $firstOrg = $this->organizations->first();
+            $link = '/admin/organizations/' . $firstOrg->id . '/edit';
+        } elseif (!empty($userNames) && $this->users->isNotEmpty()) {
+            $firstUser = $this->users->first();
+            $link = '/admin/users/' . $firstUser->id;
+        }
+
+        if ($name === null) {
+            return null;
         }
 
         return [
@@ -259,7 +265,7 @@ class Event extends Model
      */
     public function getAvailableSeatsAttribute()
     {
-        if ($this->seats === null) {
+        if ($this->seats === null || $this->seats < 0) {
             return null; // Unlimited seats
         }
 

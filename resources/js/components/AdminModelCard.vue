@@ -12,6 +12,8 @@ interface Props {
   indexRoute: string;
   createRoute: string;
   showNewCount?: boolean;
+  activeCount?: number;
+  inactiveCount?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -67,6 +69,17 @@ const icon = computed(() => {
         <div v-if="showNewCount && newCount !== undefined" class="mt-2">
           <div class="text-lg font-semibold text-green-600">+{{ newCount }}</div>
           <div class="text-sm">New this week</div>
+        </div>
+
+        <div v-if="activeCount !== undefined || inactiveCount !== undefined" class="mt-3 grid grid-cols-2 gap-2">
+          <div v-if="activeCount !== undefined" class="text-sm">
+            <span class="font-semibold text-emerald-600">{{ activeCount }}</span>
+            <span class="text-muted-foreground"> active/published</span>
+          </div>
+          <div v-if="inactiveCount !== undefined" class="text-sm">
+            <span class="font-semibold text-amber-600">{{ inactiveCount }}</span>
+            <span class="text-muted-foreground"> unpublished/inactive</span>
+          </div>
         </div>
       </div>
 

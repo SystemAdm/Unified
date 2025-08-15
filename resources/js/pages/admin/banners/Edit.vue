@@ -34,7 +34,10 @@ interface Banner {
     type: string;
     from_datetime: string;
     to_datetime: string;
-    activating: boolean;
+    is_published: boolean;
+    is_recurring?: boolean;
+    is_active?: boolean;
+    relative_day?: string | null;
     visible_to_access: string[] | null;
     visible_to_role: string[] | null;
     link_norwegian: string | null;
@@ -69,6 +72,7 @@ const form = useForm({
     from_datetime: formatDateTimeForInput(props.banner.from_datetime),
     to_datetime: formatDateTimeForInput(props.banner.to_datetime),
     is_published: props.banner.is_published,
+    is_recurring: (props.banner as any).is_recurring ?? false,
     visible_to_access: props.banner.visible_to_access || [],
     visible_to_role: props.banner.visible_to_role || [],
     link_norwegian: props.banner.link_norwegian || '',
@@ -155,6 +159,12 @@ const toggleRole = (roleValue: string) => {
                     <Checkbox id="is_published" :checked="form.is_published" @update:checked="form.is_published = $event" />
                     <Label for="is_published">Publish banner</Label>
                     <InputError :message="form.errors.is_published" />
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    <Checkbox id="is_recurring" :checked="(form as any).is_recurring" @update:checked="(form as any).is_recurring = $event" />
+                    <Label for="is_recurring">Recurring annually</Label>
+                    <InputError :message="(form as any).errors?.is_recurring" />
                 </div>
 
                 <div class="space-y-2">

@@ -16,6 +16,8 @@ interface ModelData {
     newCount: number;
     indexRoute: string;
     createRoute: string;
+    activeCount?: number;
+    inactiveCount?: number;
 }
 
 interface Props {
@@ -100,6 +102,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                     :model-type="model.modelType"
                     :total-count="model.totalCount"
                     :new-count="model.newCount"
+                    :active-count="model.activeCount"
+                    :inactive-count="model.inactiveCount"
                     :index-route="model.indexRoute"
                     :create-route="model.createRoute"
                 />

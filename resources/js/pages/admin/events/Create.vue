@@ -199,7 +199,7 @@ const submit = () => {
                 <!-- Location Selection -->
                 <div class="space-y-2">
                     <Label for="location_id">Location</Label>
-                    <Select :model-value="form.location_id" @update:model-value="(value) => form.location_id = value">
+                    <Select :model-value="form.location_id" @update:model-value="(value) => form.location_id = (value === null ? null : Number(value))">
                         <SelectTrigger>
                             <SelectValue placeholder="Select location" />
                         </SelectTrigger>
@@ -216,7 +216,7 @@ const submit = () => {
                 <!-- Status -->
                 <div class="space-y-2">
                     <Label for="status">Status</Label>
-                    <Select :model-value="form.status" @update:model-value="(value) => form.status = value">
+                    <Select :model-value="form.status" @update:model-value="(value) => form.status = String(value)">
                         <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -293,7 +293,7 @@ const submit = () => {
                         <!-- Seats Configuration -->
                         <div class="space-y-2">
                             <Label for="seats">Number of Seats</Label>
-                            <Select :model-value="form.seats" @update:model-value="(value) => form.seats = value">
+                            <Select :model-value="form.seats" @update:model-value="(value) => form.seats = Number(value)">
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select seats availability" />
                                 </SelectTrigger>
@@ -323,8 +323,8 @@ const submit = () => {
                             <div v-for="user in props.users" :key="user.id" class="flex items-center space-x-2">
                                 <Checkbox
                                     :id="'user-' + user.id"
-                                    :checked="selectedUserIds.includes(user.id)"
-                                    @update:checked="toggleUser(user.id)"
+                                    :model-value="selectedUserIds.includes(user.id)"
+                                    @update:model-value="() => toggleUser(user.id)"
                                 />
                                 <Label :for="'user-' + user.id">{{ user.name }}</Label>
                             </div>
@@ -339,8 +339,8 @@ const submit = () => {
                             <div v-for="org in props.organizations" :key="org.id" class="flex items-center space-x-2">
                                 <Checkbox
                                     :id="'org-' + org.id"
-                                    :checked="selectedOrgIds.includes(org.id)"
-                                    @update:checked="toggleOrganization(org.id)"
+                                    :model-value="selectedOrgIds.includes(org.id)"
+                                    @update:model-value="() => toggleOrganization(org.id)"
                                 />
                                 <Label :for="'org-' + org.id">{{ org.name }}</Label>
                             </div>
@@ -356,7 +356,7 @@ const submit = () => {
                     <!-- Role Restriction -->
                     <div class="space-y-2">
                         <Label for="restriction">Role Restriction</Label>
-                        <Select v-model="form.restriction">
+                        <Select :model-value="form.restriction" @update:model-value="(value) => form.restriction = value">
                             <SelectTrigger>
                                 <SelectValue placeholder="Select restriction" />
                             </SelectTrigger>
@@ -380,13 +380,13 @@ const submit = () => {
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <div class="space-y-2">
                             <Label for="min_age">Minimum Age</Label>
-                            <Input id="min_age" v-model="form.min_age" type="number" min="0" placeholder="No minimum" />
+                            <Input id="min_age" :model-value="form.min_age ?? ''" @update:model-value="(v) => form.min_age = (v === '' || v === null ? null : Number(v))" type="number" min="0" placeholder="No minimum" />
                             <InputError :message="form.errors.min_age" />
                         </div>
 
                         <div class="space-y-2">
                             <Label for="max_age">Maximum Age</Label>
-                            <Input id="max_age" v-model="form.max_age" type="number" min="0" placeholder="No maximum" />
+                            <Input id="max_age" :model-value="form.max_age ?? ''" @update:model-value="(v) => form.max_age = (v === '' || v === null ? null : Number(v))" type="number" min="0" placeholder="No maximum" />
                             <InputError :message="form.errors.max_age" />
                         </div>
                     </div>

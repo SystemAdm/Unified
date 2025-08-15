@@ -197,11 +197,11 @@ const userMeetsAgeRequirements = (event: Event) => {
                         </div>
 
                         <!-- Available Seats -->
-                        <div v-if="props.event.seats !== null" class="mb-2 flex items-center text-muted-foreground">
+                        <div class="mb-2 flex items-center text-muted-foreground">
                             <BetweenHorizontalStartIcon class="mr-2 h-4 w-4" />
-                            <span class="mr-2">Available Seats:</span>
-                            <strong class="text-white">{{ props.event.seats }}</strong>
-                            <strong class="text-white">{{ props.event.available_seats }}</strong>
+                            <span class="mr-2">Seats:</span>
+                            <strong v-if="props.event.seats == null || (typeof props.event.seats === 'number' && props.event.seats < 0)" class="text-white">Unlimited</strong>
+                            <strong v-else class="text-white">{{ props.event.available_seats }} of {{ props.event.seats }} available</strong>
                         </div>
 
                         <!-- Restrictions -->

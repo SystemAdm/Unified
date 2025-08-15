@@ -26,6 +26,12 @@ class Banner extends Model
         'link_english',
     ];
 
+    // Ensure API responses include backend-computed status/labels
+    protected $appends = [
+        'is_active',
+        'relative_day',
+    ];
+
     protected $casts = [
         'is_published' => 'boolean',
         'is_recurring' => 'boolean',
@@ -154,5 +160,16 @@ class Banner extends Model
         }
 
         return null;
+    }
+
+    // Accessors for serialization
+    public function getIsActiveAttribute(): bool
+    {
+        return $this->isActive();
+    }
+
+    public function getRelativeDayAttribute(): ?string
+    {
+        return $this->getRelativeDayLabel();
     }
 }

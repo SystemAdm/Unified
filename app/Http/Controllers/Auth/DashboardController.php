@@ -25,18 +25,15 @@ class DashboardController extends Controller
         // Remove appended attributes from the collection to reduce queries
         $events->each->setAppends([]);
 
-        // Fetch active banners
+        // Fetch active banners using model logic (handles recurring ranges correctly)
         $banners = Banner::where('is_published', true)
-            ->where('from_datetime', '<=', now())
-            ->where('to_datetime', '>=', now())
-            ->orderBy('from_datetime', 'desc')
-            ->limit(5)
-            ->get();
-
-        // Add 'activating' property to each banner for the frontend
-        $banners->each(function ($banner) {
-            $banner->activating = $banner->is_published;
-        });
+            ->get()
+            ->filter(function ($banner) {
+                return $banner->isActive();
+            })
+            ->sortByDesc('from_datetime')
+            ->take(5)
+            ->values();
 
         // Fetch active announcements
         $announcements = Announcement::where('activating', true)

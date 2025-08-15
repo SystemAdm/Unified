@@ -195,10 +195,11 @@ const userMeetsAgeRequirements = (event: EventProps) => {
                     </template>
                 </div>
                 <!-- Available Seats (only in detailed view) -->
-                <div v-if="showDetailedView && event.available_seats !== null" class="mb-2 flex items-center text-muted-foreground">
+                <div v-if="showDetailedView" class="mb-2 flex items-center text-muted-foreground">
                     <BetweenHorizontalStartIcon class="mr-2 h-4 w-4" />
                     <span class="mr-2">Available Seats:</span>
-                    <strong class="text-white">{{ event.available_seats }}</strong>
+                    <strong v-if="event.seats == null || (typeof event.seats === 'number' && event.seats < 0)" class="text-white">Unlimited</strong>
+                    <strong v-else class="text-white">{{ event.available_seats }}</strong>
                 </div>
                 <!-- Restrictions (only in detailed view) -->
                 <div v-if="showDetailedView && event.restriction" class="mb-2 flex items-center text-muted-foreground">

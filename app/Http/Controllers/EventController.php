@@ -47,8 +47,6 @@ class EventController extends Controller
                     'users:id,given_name,family_name',
                 ])
                 ->withCount('signupped') // Use withCount instead of loading the full relationship
-                // Add index hint for better performance on start_date ordering
-                ->fromRaw('events USE INDEX (events_start_date_index)')
                 ->orderBy('start_date', 'asc')
                 ->paginate(9);
 
@@ -83,7 +81,11 @@ class EventController extends Controller
             })->values()->all();
 
             // Calculate available seats using the count from withCount
-            $event->available_seats = $event->seats !== null ? max(0, $event->seats - $event->signupped_count) : null;
+            if ($event->seats === null || $event->seats < 0) {
+                $event->available_seats = null; // Unlimited seats
+            } else {
+                $event->available_seats = max(0, $event->seats - $event->signupped_count);
+            }
 
             // Ensure boolean casting
             $event->has_signup = (bool) $event->has_signup;
@@ -119,10 +121,10 @@ class EventController extends Controller
         $event->has_signup = (bool) $event->has_signup;
 
         // Calculate available seats
-        if ($event->seats !== null) {
-            $event->available_seats = max(0, $event->seats - $event->signupped->count());
-        } else {
+        if ($event->seats === null || $event->seats < 0) {
             $event->available_seats = null; // Unlimited seats
+        } else {
+            $event->available_seats = max(0, $event->seats - $event->signupped->count());
         }
 
         // Check if current user is already signed up (check all event user relationships)

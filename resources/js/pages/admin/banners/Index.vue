@@ -69,6 +69,11 @@ const breadcrumbs: BreadcrumbItem[] = [
 // Using standardized date format for banners
 
 const isActive = (banner: Banner) => {
+    // Prefer backend-computed status (handles recurring logic)
+    if (typeof (banner as any).is_active !== 'undefined') {
+        return (banner as any).is_active as boolean;
+    }
+    // Fallback: simple check
     const now = new Date();
     const from = new Date(banner.from_datetime);
     const to = new Date(banner.to_datetime);

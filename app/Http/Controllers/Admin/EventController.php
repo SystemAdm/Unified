@@ -28,35 +28,40 @@ class EventController extends Controller
     {
         $this->authorize(Permission::INDEX_EVENT->value);
 
-        $query = Event::with(['location', 'organizations', 'users']);
+        $query = Event::with([
+            'location:id,name',
+            'organizations:id,name',
+            // Users don't have a physical `name` column; load parts used by the accessor
+            'users:id,given_name,additional_name,family_name',
+        ]);
 
-        // Filter by date range
-        if ($request->has('from_date') && $request->from_date !== '' && $request->from_date !== null) {
-            $query->where('start_date', '>=', $request->from_date);
+        // Filter by date range (date-only inputs; use whereDate)
+        if ($request->filled('from_date')) {
+            $query->whereDate('start_date', '>=', $request->from_date);
         }
-        if ($request->has('to_date') && $request->to_date !== '' && $request->to_date !== null) {
-            $query->where('start_date', '<=', $request->to_date);
+        if ($request->filled('to_date')) {
+            $query->whereDate('start_date', '<=', $request->to_date);
         }
 
-        // Filter by location
-        if ($request->has('location_id') && $request->location_id) {
-            $query->where('location_id', $request->location_id);
+        // Filter by location (numeric only)
+        if ($request->filled('location_id') && is_numeric($request->location_id)) {
+            $query->where('location_id', (int) $request->location_id);
         }
 
         // Filter by status
-        if ($request->has('status') && $request->status) {
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
         // Filter by organizer (organization or user)
-        if ($request->has('organizer_type') && $request->has('organizer_id') && $request->organizer_id) {
+        if ($request->filled('organizer_type') && $request->filled('organizer_id') && is_numeric($request->organizer_id)) {
             if ($request->organizer_type === 'user') {
                 $query->whereHas('users', function ($q) use ($request) {
-                    $q->where('users.id', $request->organizer_id);
+                    $q->where('users.id', (int) $request->organizer_id);
                 });
             } elseif ($request->organizer_type === 'organization') {
                 $query->whereHas('organizations', function ($q) use ($request) {
-                    $q->where('organizations.id', $request->organizer_id);
+                    $q->where('organizations.id', (int) $request->organizer_id);
                 });
             }
         }
@@ -81,17 +86,28 @@ class EventController extends Controller
 
         $events = $query->paginate(10)->withQueryString();
 
-        // Transform the events to include the location name
-        $events->through(function ($event) {
-            return $event;
-        });
+        // No additional transformation needed; relations are eager-loaded with minimal columns.
 
-        // Get locations for filter dropdown
-        $locations = \App\Models\Location::where('is_active', true)->get();
+        // Get locations for filter dropdown (minimal columns)
+        $locations = \App\Models\Location::where('is_active', true)
+            ->select('id', 'name')
+            ->orderBy('name')
+            ->get();
 
-        // Get users and organizations for organizer filter
-        $users = User::all();
-        $organizations = \App\Models\Organization::all();
+        // Get users and organizations for organizer filter (minimal columns)
+        // Users don't have a physical `name` column; build it from parts and sort by those parts
+        $users = User::select('id', 'given_name', 'additional_name', 'family_name')
+            ->orderBy('given_name')
+            ->orderBy('additional_name')
+            ->orderBy('family_name')
+            ->get()
+            ->map(function ($u) {
+                return [
+                    'id' => $u->id,
+                    'name' => $u->name, // accessor combines the parts
+                ];
+            });
+        $organizations = \App\Models\Organization::select('id', 'name')->orderBy('name')->get();
 
         return Inertia::render('admin/events/Index', [
             'events' => $events,
@@ -148,6 +164,12 @@ class EventController extends Controller
             'organization_ids.*' => 'exists:organizations,id',
         ]);
 
+        // Normalize seats: -1 (from UI) means unlimited => store as null
+        $seats = array_key_exists('seats', $validated) ? (int) $validated['seats'] : null;
+        if ($seats === -1) {
+            $seats = null;
+        }
+
         // Create the event
         $event = Event::create([
             'title' => $validated['title'],
@@ -159,7 +181,7 @@ class EventController extends Controller
             'has_signup' => $validated['has_signup'] ?? false,
             'signup_start_date' => $validated['signup_start_date'],
             'signup_end_date' => $validated['signup_end_date'],
-            'seats' => $validated['seats'],
+            'seats' => $seats,
             'min_age' => $validated['min_age'],
             'max_age' => $validated['max_age'],
             'class_restriction' => $validated['class_restriction'],
@@ -168,12 +190,12 @@ class EventController extends Controller
 
         // Attach user organizers
         if (!empty($validated['user_ids'])) {
-            $event->organizers()->attach($validated['user_ids']);
+            $event->organizers()->attach(array_map('intval', $validated['user_ids']));
         }
 
         // Attach organization organizers
         if (!empty($validated['organization_ids'])) {
-            $event->organizations()->attach($validated['organization_ids']);
+            $event->organizations()->attach(array_map('intval', $validated['organization_ids']));
         }
 
         // Dispatch event to Discord if the event is published
@@ -213,6 +235,9 @@ class EventController extends Controller
 
         // Load the event's relationships
         $event->load(['users', 'organizations']);
+
+        // For UI convenience: map DB null seats (unlimited) to -1 so the select preselects "Unlimited"
+        $event->seats = $event->seats ?? -1;
 
         return Inertia::render('admin/events/Edit', [
             'event' => $event,
@@ -254,6 +279,12 @@ class EventController extends Controller
         $wasPublished = $event->status === 'published';
         $isNowPublished = $validated['status'] === 'published';
 
+        // Normalize seats: -1 (from UI) means unlimited => store as null
+        $seats = array_key_exists('seats', $validated) ? (int) $validated['seats'] : null;
+        if ($seats === -1) {
+            $seats = null;
+        }
+
         // Update the event
         $event->update([
             'title' => $validated['title'],
@@ -265,21 +296,21 @@ class EventController extends Controller
             'has_signup' => $validated['has_signup'] ?? false,
             'signup_start_date' => $validated['signup_start_date'],
             'signup_end_date' => $validated['signup_end_date'],
-            'seats' => $validated['seats'],
+            'seats' => $seats,
             'min_age' => $validated['min_age'],
             'max_age' => $validated['max_age'],
             'class_restriction' => $validated['class_restriction'],
             'restriction' => $validated['restriction'] ?? 'everyone',
         ]);
 
-        // Update user organizers
-        if (isset($validated['user_ids'])) {
-            $event->organizers()->sync($validated['user_ids']);
+        // Update user organizers (always sync to provided list or empty)
+        if (array_key_exists('user_ids', $validated)) {
+            $event->organizers()->sync(array_map('intval', $validated['user_ids'] ?? []));
         }
 
-        // Update organization organizers
-        if (isset($validated['organization_ids'])) {
-            $event->organizations()->sync($validated['organization_ids']);
+        // Update organization organizers (always sync to provided list or empty)
+        if (array_key_exists('organization_ids', $validated)) {
+            $event->organizations()->sync(array_map('intval', $validated['organization_ids'] ?? []));
         }
 
         // Dispatch event to Discord if the event is now published and wasn't before,
